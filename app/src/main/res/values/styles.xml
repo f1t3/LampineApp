@@ -1,0 +1,16 @@
+<resources>
+    <!-- Base application theme: No action bar, status bar light -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="titleTextColor">@color/colorTextHeadings</item>
+        <item name="fontFamily">@font/cantarell_bold</item>
+        <item name="android:titleTextColor">@color/colorTextHeadings</item>
+        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+
+</resources>
