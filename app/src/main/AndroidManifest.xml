@@ -15,13 +15,13 @@
         android:theme="@style/AppTheme">
 
         <!-- Activities -->
-        <activity android:name=".ConnectToLampActivity">
+        <activity android:name=".ActivityConnectToLamp">
             <intent-filter> <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.lampineapp.DeviceControlActivity"/>
-        <activity android:name="com.lampineapp.LampConnectedActivity"/>
+        <activity android:name=".LampDeveloperInterfaceActivity"/>
+        <activity android:name=".ActivityLampConnected"/>
 
 
         <!-- Services -->

@@ -16,7 +16,7 @@
 
 package com.lampineapp;
 
-import android.app.Activity;
+import android.app.FragmentManager;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -31,19 +31,20 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ExpandableListView;
-import android.widget.ListView;
-import android.widget.SimpleExpandableListAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
+
+import android.app.Fragment;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 
 import com.btle.BluetoothLeService;
 import com.btle.SampleGattAttributes;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * For a given BLE device, this Activity provides the user interface to connect,
@@ -51,32 +52,27 @@ import java.util.List;
  * device. The Activity communicates with {@code BluetoothLeService}, which in
  * turn interacts with the Bluetooth LE API.
  */
-public class LampConnectedActivity extends Activity {
-	private final static String TAG = LampConnectedActivity.class
+public class ActivityLampConnected extends AppCompatActivity {
+	private ImageButton mButtonLiveControlLamp, mButtonConfigureLamp, mButtonDisplayLampInfo;
+	private Fragment mCurrentUiAreaFragment, mLastUiAreaFragment;
+	private ActionBar mActionBar;
+
+	private final static String TAG = ActivityLampConnected.class
 			.getSimpleName();
 
 	public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
 	public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
-
-	//private TextView mConnectionState;
-	//private TextView mDataField;
-	private Button btnLsd50, btnLsd100, btnLsd200;
-	private String mDeviceName;
 	private String mDeviceAddress;
+	private String mDeviceName;
+
 	private BluetoothLeService mBluetoothLeService;
 	private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
 	private boolean mConnected = false;
 	private BluetoothGattCharacteristic mNotifyCharacteristic;
 
-	private ArrayAdapter<String> mConversationArrayAdapter;
-	private ListView mConversationView;
-
 	// blechat - characteristics for HM-10 serial
 	private BluetoothGattCharacteristic characteristicTX;
 	private BluetoothGattCharacteristic characteristicRX;
-
-	private final String LIST_NAME = "NAME";
-	private final String LIST_UUID = "UUID";
 
 	// Code to manage Service lifecycle.
 	private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -136,8 +132,9 @@ public class LampConnectedActivity extends Activity {
 				// displayGattServices(mBluetoothLeService
 				// .getSupportedGattServices());
 			} else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-				displayData(intent
-						.getStringExtra(BluetoothLeService.EXTRA_DATA));
+				//displayData(intent
+				//		.getStringExtra(BluetoothLeService.EXTRA_DATA));
+				Log.d(TAG,"Received data: " + intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
 			}
 		}
 	};
@@ -187,14 +184,47 @@ public class LampConnectedActivity extends Activity {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		// TODO: REMOVE / cleanup
-		setContentView(R.layout.gatt_services_characteristics);
-
+		// get selected device's data
 		final Intent intent = getIntent();
 		mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
 		mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
+		// setup view
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_lamp_connected);
+		mActionBar = getSupportActionBar();
+		mActionBar.setTitle(mDeviceName);
+		//mActionBar.setSubtitle(R.string.title_live_control_lamp);
+		mActionBar.setDisplayHomeAsUpEnabled(true);
+
+		// Get UI elements, define listeners
+		mButtonLiveControlLamp = findViewById(R.id.button_lamp_live_control);
+		mButtonLiveControlLamp.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				replaceHighlightedNavigationButton(mButtonLiveControlLamp);
+				replaceCurrentUiAreaFragment(new FragmentLiveControlLamp());
+				//mActionBar.setSubtitle(R.string.title_live_control_lamp);
+			}
+		});
+		mButtonConfigureLamp = findViewById(R.id.button_configure_lamp);
+		mButtonConfigureLamp.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				replaceHighlightedNavigationButton(mButtonConfigureLamp);
+				replaceCurrentUiAreaFragment(new FragmentConfigureLamp());
+				//mActionBar.setSubtitle(R.string.title_configure_lamp);
+			}
+		});
+		mButtonDisplayLampInfo = findViewById(R.id.button_lamp_info);
+		mButtonDisplayLampInfo.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				replaceHighlightedNavigationButton(mButtonDisplayLampInfo);
+				replaceCurrentUiAreaFragment(new FragmentDisplayLampInfo());
+				//mActionBar.setSubtitle(R.string.title_lamp_info);
+
+			}
+		});
+
+		// bind service
 		Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
 		bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 	}
@@ -227,7 +257,6 @@ public class LampConnectedActivity extends Activity {
 
 				mBluetoothLeService.setCharacteristicNotification(
 						characteristicRX, true);
-
 				break;
 
 			} // if
@@ -241,37 +270,6 @@ public class LampConnectedActivity extends Activity {
 	@Override
 	public void onStart() {
 		super.onStart();
-		
-		// change view for chat
-		setContentView(R.layout.communication_layout);
-
-		// Initialize the array adapter for the conversation 
-		mConversationArrayAdapter = new ArrayAdapter<String>(this,
-				R.layout.message);
-		mConversationView = (ListView) findViewById(R.id.in);
-		mConversationView.setAdapter(mConversationArrayAdapter);
-
-		//TODO: REMOVE FROM FINAL PRODUCT
-		btnLsd50 = findViewById(R.id.btnLsd50);
-		btnLsd100 = findViewById(R.id.btnLsd100);
-		btnLsd200 = findViewById(R.id.btnLsd200);
-
-		btnLsd50.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				sendSerialString("ledctl -lsd 50");
-			}
-		});
-		btnLsd100.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				sendSerialString("ledctl -lsd 100");
-			}
-		});
-		btnLsd200.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				sendSerialString("ledctl -lsd 200");
-			}
-		});
-
 	}
 
 	@Override
@@ -345,16 +343,6 @@ public class LampConnectedActivity extends Activity {
 			
 			// blechat
 			// add received data to screen
-			
-	        // if there is a newline
-			if( nlIdx > 0 ) {
-	             mConversationArrayAdapter.add(data.substring(0,nlIdx));
-			
-			} else {
-				// use whole string
-	             mConversationArrayAdapter.add(data);
-
-			} // else
 
 		}
 	}
@@ -385,7 +373,7 @@ public class LampConnectedActivity extends Activity {
 	//
 	// Send string io out field
 	// TODO: REMOVE OR MERGE WITH sendSerialString(String str)
-	private void sendSerial() {  
+	private void sendSerial() {
 		TextView view = (TextView) findViewById(R.id.edit_text_out); 
 		String message = view.getText().toString() + "\r \n";
 
@@ -397,7 +385,7 @@ public class LampConnectedActivity extends Activity {
 		}
 	}
 
-	private void sendSerialString(String string) {
+	protected void sendSerialString(String string) {
 		final String message = string + "\r \n";
 		Log.d(TAG, "Sending: " + message);
 		final byte[] tx = message.getBytes();
@@ -406,4 +394,27 @@ public class LampConnectedActivity extends Activity {
 			mBluetoothLeService.writeCharacteristic(characteristicTX);
 		}
 	}
+
+	private void replaceCurrentUiAreaFragment(Fragment fragment) {
+		FragmentManager fm = getFragmentManager();
+
+		// get and destroy current fragment
+		final Fragment currFragment = fm.findFragmentById(R.id.lamp_connected_ui_fragment_area);
+		if (currFragment != null)
+			fm.beginTransaction().remove(currFragment).commit();
+
+		// replace with new fragment
+		fm.beginTransaction().replace(R.id.lamp_connected_ui_fragment_area, fragment).commit();
+	}
+
+	private void replaceHighlightedNavigationButton(ImageButton button) {
+		// Set all icons inactive
+		final int colorInactive = this.getColor(R.color.colorIconInactive);
+		mButtonLiveControlLamp.setColorFilter(colorInactive);
+		mButtonConfigureLamp.setColorFilter(colorInactive);
+		mButtonDisplayLampInfo.setColorFilter(colorInactive);
+		// Set desired icon active
+		button.setColorFilter(this.getColor(R.color.colorIconActive));
+	}
+
 }

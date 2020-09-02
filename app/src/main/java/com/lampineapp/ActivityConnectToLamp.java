@@ -28,7 +28,7 @@ import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 
-public class ConnectToLampActivity extends AppCompatActivity {
+public class ActivityConnectToLamp extends AppCompatActivity {
 
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private ListView mListView;
@@ -84,11 +84,9 @@ public class ConnectToLampActivity extends AppCompatActivity {
                 final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
                 if (device == null)
                     return;
-                // TODO: CLEAN UP
-                //final Intent intent = new Intent(mActivity, DeviceControlActivity.class);
-                final Intent intent = new Intent(mActivity, LampConnectedActivity.class);
-                intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, device.getName());
-                intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+                final Intent intent = new Intent(mActivity, ActivityLampConnected.class);
+                intent.putExtra(ActivityLampConnected.EXTRAS_DEVICE_NAME, device.getName());
+                intent.putExtra(ActivityLampConnected.EXTRAS_DEVICE_ADDRESS, device.getAddress());
                 if (mScanning) {
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                     mScanning = false;
@@ -232,7 +230,7 @@ public class ConnectToLampActivity extends AppCompatActivity {
         public LeDeviceListAdapter() {
             super();
             mLeDevices = new ArrayList<BluetoothDevice>();
-            mInflator = ConnectToLampActivity.this.getLayoutInflater();
+            mInflator = ActivityConnectToLamp.this.getLayoutInflater();
         }
 
         public void addDevice(BluetoothDevice device) {

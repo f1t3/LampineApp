@@ -16,6 +16,9 @@
 
     <!-- Actionbar titles -->
     <string name="title_connect_to_lamp">Connect to Lampine...</string>
+    <string name="title_live_control_lamp">Live Control Lamp...</string>
+    <string name="title_configure_lamp">Configure Lamp...</string>
+    <string name="title_lamp_info">Lamp Information...</string>
 
     <!-- Informational items -->
     <string name="info_searching_for_devices">Searching for Lampine devices...</string>
