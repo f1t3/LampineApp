@@ -14,6 +14,13 @@
     <string name="unknown_characteristic">Unknown characteristic</string>
     <string name="unknown_service">Unknown service</string>
 
+    <!-- Actionbar titles -->
+    <string name="title_connect_to_lamp">Connect to Lampine...</string>
+
+    <!-- Informational items -->
+    <string name="info_searching_for_devices">Searching for Lampine devices...</string>
+    <string name="info_howto_connect">To connect a Lampine device, triple press the button on your lamp to enable bluetooth.</string>
+
     <!-- Menu items -->
     <string name="menu_connect">Connect</string>
     <string name="menu_disconnect">Disconnect</string>

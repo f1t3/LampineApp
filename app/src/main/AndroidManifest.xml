@@ -15,13 +15,16 @@
         android:theme="@style/AppTheme">
 
         <!-- Activities -->
-        <activity android:name=".ConnectToLampActivity"
-            android:label="Connect to Lampine">
+        <activity android:name=".ConnectToLampActivity">
             <intent-filter> <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity android:name="com.lampineapp.DeviceControlActivity"/>
+        <activity android:name="com.lampineapp.LampConnectedActivity"/>
+
+
+        <!-- Services -->
         <service android:name="com.btle.BluetoothLeService"
             android:enabled="true"/>
 

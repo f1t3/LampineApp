@@ -1,10 +1,7 @@
 package com.lampineapp;
 
-import com.btle.BluetoothLeService;
-import com.btle.SampleGattAttributes;
 import android.Manifest;
 import android.app.Activity;
-import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -23,11 +20,11 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
-import android.os.Bundle;
 
 import java.util.ArrayList;
 
@@ -50,6 +47,9 @@ public class ConnectToLampActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connect_to_lamp);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null)
+            actionBar.setTitle(getString(R.string.title_connect_to_lamp));
 
         mHandler = new Handler();
 
@@ -82,8 +82,11 @@ public class ConnectToLampActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
-                if (device == null) return;
-                final Intent intent = new Intent(mActivity, DeviceControlActivity.class);
+                if (device == null)
+                    return;
+                // TODO: CLEAN UP
+                //final Intent intent = new Intent(mActivity, DeviceControlActivity.class);
+                final Intent intent = new Intent(mActivity, LampConnectedActivity.class);
                 intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, device.getName());
                 intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
                 if (mScanning) {
@@ -266,7 +269,7 @@ public class ConnectToLampActivity extends AppCompatActivity {
             ViewHolder viewHolder;
             // General ListView optimization code.
             if (view == null) {
-                view = mInflator.inflate(R.layout.listitem_device, null);
+                view = mInflator.inflate(R.layout.activity_connect_to_lamp_listitem, null);
                 viewHolder = new ViewHolder();
                 viewHolder.deviceAddress = (TextView) view.findViewById(R.id.device_address);
                 viewHolder.deviceName = (TextView) view.findViewById(R.id.device_name);
@@ -313,6 +316,8 @@ public class ConnectToLampActivity extends AppCompatActivity {
 
     // Tests weather BTLE device is valid Lampine device
     private boolean isValidLampineDevice(BluetoothDevice device) {
+        return true;
+        /*
         if (device == null)
             return false;
         final String name = device.getName();
@@ -322,6 +327,7 @@ public class ConnectToLampActivity extends AppCompatActivity {
             return true;
         }
         return false;
+        */
     }
 
 }
