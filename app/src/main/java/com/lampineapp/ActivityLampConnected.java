@@ -197,6 +197,11 @@ public class ActivityLampConnected extends AppCompatActivity {
 		//mActionBar.setSubtitle(R.string.title_live_control_lamp);
 		mActionBar.setDisplayHomeAsUpEnabled(true);
 
+		// TODO: causes crash
+		// Default view: live control
+		//replaceHighlightedNavigationButton(mButtonLiveControlLamp);
+		//replaceCurrentUiAreaFragment(new FragmentLiveControlLamp());
+
 		// Get UI elements, define listeners
 		mButtonLiveControlLamp = findViewById(R.id.button_lamp_live_control);
 		mButtonLiveControlLamp.setOnClickListener(new View.OnClickListener() {
@@ -386,7 +391,8 @@ public class ActivityLampConnected extends AppCompatActivity {
 	}
 
 	protected void sendSerialString(String string) {
-		final String message = string + "\r \n";
+		// TODO: THIS METHOD SEEMS ONLY BE CAPABLE OF SENDING 20 BYTES IN A ROW!!!!
+		final String message = string;
 		Log.d(TAG, "Sending: " + message);
 		final byte[] tx = message.getBytes();
 		if (mConnected) {
