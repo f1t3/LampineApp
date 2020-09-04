@@ -6,7 +6,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/text_view_battery_voltage_value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Configure view dummy 1" />

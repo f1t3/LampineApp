@@ -6,20 +6,13 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Display info dummy 1" />
-
-    <TextView
-        android:id="@+id/textView5"
+        android:id="@+id/text_view_battery_voltage_value"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Display info dummy 2" />
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
+        android:text="Display info dummy 1"
+        android:textColor="@color/colorTextHeadings" />
 
-    <TextView
-        android:id="@+id/textView6"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Display info dummy 3" />
 </LinearLayout>

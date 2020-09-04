@@ -60,6 +60,11 @@ public class ActivityLampConnected extends AppCompatActivity {
 	private final static String TAG = ActivityLampConnected.class
 			.getSimpleName();
 
+	// TODO: CHECK IMPLEMENTATION
+	private String receiveBuffer;
+	private boolean receiveBufferEmpty = true;
+	SerialReceiveCallbackFunction mSerialReceiveCallbackFunction;
+
 	public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
 	public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 	private String mDeviceAddress;
@@ -132,12 +137,22 @@ public class ActivityLampConnected extends AppCompatActivity {
 				// displayGattServices(mBluetoothLeService
 				// .getSupportedGattServices());
 			} else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-				//displayData(intent
-				//		.getStringExtra(BluetoothLeService.EXTRA_DATA));
-				Log.d(TAG,"Received data: " + intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+				// TODO: CHECK IMPLEMENTATION RECEIVER
+				receiveBuffer = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
+				Log.d(TAG,"Received data: \"" + receiveBuffer + "\"");
+				mSerialReceiveCallbackFunction.onSerialDataReceived(receiveBuffer);
 			}
 		}
 	};
+
+	public String readAndClearRxBuffer() {
+		if (receiveBufferEmpty)	{
+			return null;
+		} else {
+			receiveBufferEmpty = true;
+			return receiveBuffer;
+		}
+	}
 
 	// If a given GATT characteristic is selected, check for supported features.
 	// This sample
@@ -382,7 +397,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 		TextView view = (TextView) findViewById(R.id.edit_text_out); 
 		String message = view.getText().toString() + "\r \n";
 
-		Log.d(TAG, "Sending: " + message);
+		Log.d(TAG, "Sending: \"" + message + "\"");
 		final byte[] tx = message.getBytes();
 		if (mConnected) {
 			characteristicTX.setValue(tx);
@@ -399,6 +414,14 @@ public class ActivityLampConnected extends AppCompatActivity {
 			characteristicTX.setValue(tx);
 			mBluetoothLeService.writeCharacteristic(characteristicTX);
 		}
+	}
+
+	protected interface SerialReceiveCallbackFunction {
+		void onSerialDataReceived(String data);
+	}
+
+	protected void setSerialReceiveCallbackFunction(SerialReceiveCallbackFunction callbackFunction) {
+		mSerialReceiveCallbackFunction = callbackFunction;
 	}
 
 	private void replaceCurrentUiAreaFragment(Fragment fragment) {
