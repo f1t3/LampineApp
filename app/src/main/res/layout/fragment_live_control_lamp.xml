@@ -9,15 +9,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_weight="0"
-            app:srcCompat="@drawable/ic_brightness_medium_black_24dp" />
+            app:srcCompat="@drawable/ic_wb_sunny_black_24dp" />
 
         <Space
             android:layout_width="16dp"
@@ -26,16 +29,20 @@
 
         <TextView
             android:id="@+id/textView3"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="TextView"/>
+            android:text="@string/slider_intensity_text"
+            android:textColor="@color/colorTextHeadings"
+            android:textSize="16sp" />
     </LinearLayout>
 
     <com.google.android.material.slider.Slider
         android:id="@+id/slider"
         android:layout_width="match_parent"
         android:layout_height="48dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:value="50"
         android:valueFrom="#FFFFFF"
         android:valueTo="100"
@@ -46,16 +53,19 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
         android:layout_weight="0"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <ImageView
             android:id="@+id/imageView2"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_weight="0"
-            app:srcCompat="@drawable/ic_brightness_medium_black_24dp" />
+            app:srcCompat="@drawable/ic_color_lens_black_24dp" />
 
         <Space
             android:layout_width="16dp"
@@ -64,10 +74,12 @@
 
         <TextView
             android:id="@+id/live_control_color_picker_title"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="TextView" />
+            android:text="@string/slider_color_text"
+            android:textColor="@color/colorTextHeadings"
+            android:textSize="16sp" />
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -79,6 +91,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -89,18 +102,36 @@
             android:id="@+id/live_control_color_slider"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_marginTop="32dp"
-            android:value="50"
+            android:layout_marginTop="40dp"
+            android:value="0"
             android:valueFrom="0"
             android:valueTo="359"
-            app:labelBehavior="floating"
+            app:labelBehavior="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/imageView3"
-            app:thumbColor="@color/colorTextHeadings"
+            app:thumbColor="@color/colorIconActive"
             app:trackColorActive="@color/colorPrimaryDark"
             app:trackColorInactive="@color/colorPrimaryDark" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/color_slider_indicator_line"
+            android:layout_width="3dp"
+            android:layout_height="75dp"
+            android:layout_marginStart="14.5dp"
+            android:layout_marginBottom="18dp"
+            app:cardBackgroundColor="@color/colorIconActive"
+            app:cardCornerRadius="1.5dp"
+            app:cardElevation="0dp"
+            app:layout_constraintBottom_toBottomOf="@+id/live_control_color_slider"
+            app:layout_constraintStart_toStartOf="@+id/live_control_color_slider" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
 
     <Button
         android:id="@+id/button_rainbow_50"

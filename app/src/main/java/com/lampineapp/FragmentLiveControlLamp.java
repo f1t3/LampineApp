@@ -1,5 +1,6 @@
 package com.lampineapp;
 
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,13 +16,14 @@ import com.google.android.material.slider.Slider;
 
 public class FragmentLiveControlLamp extends Fragment {
 
+    View mSliderColorIndicatorLine;
     Slider mSliderIntensity, mSliderColor;
     Slider.OnChangeListener mSliderColorOnChangeListener;
     TextView mTextViewColorPicker;
     Button mButtonRainbow50, mButtonRainbow200;
     ActivityLampConnected mSenderActivity;
 
-    boolean rainbowOn = false;
+    int rainbowState = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -35,6 +37,7 @@ public class FragmentLiveControlLamp extends Fragment {
 
 
         // Color slider
+        mSliderColorIndicatorLine = v.findViewById(R.id.color_slider_indicator_line);
         mTextViewColorPicker = v.findViewById(R.id.live_control_color_picker_title);
         mSliderColor = v.findViewById(R.id.live_control_color_slider);
         mSliderColorOnChangeListener = new Slider.OnChangeListener() {
@@ -42,7 +45,13 @@ public class FragmentLiveControlLamp extends Fragment {
             public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
                 // Remove listener for time of processing current change
                 mSliderColor.removeOnChangeListener(mSliderColorOnChangeListener);
-                // Calculate RGB values scaled from 0 to 1
+
+                // Redraw line over slider
+                //int indicatorXPos = (int)(mSliderColor.getPaddingStart() + mSliderColor.getTranslationX());
+                int indicatorXPos = (int)(mSliderColor.getPaddingLeft() + value / 359 * mSliderColor.getTrackWidth());
+                mSliderColorIndicatorLine.setTranslationX(indicatorXPos);
+
+                // Calculate RGB values scaled from 0 to 1 as linear spectrum
                 float red = 0, green = 0, blue = 0;
                 if (value < 0) {
                     // Dummy
@@ -68,8 +77,7 @@ public class FragmentLiveControlLamp extends Fragment {
                 final int iRed = (int)(255 * red);
                 final int iGreen = (int)(255 * green);
                 final int iBlue = (int)(255 * blue);
-                mTextViewColorPicker.setText("Slider Value: " + value + ". R: " + iRed + ". G: " + iGreen + ". B: " + iBlue + ".");
-                mSenderActivity.sendSerialString("ledctl -color ");
+                mSenderActivity.sendSerialString("ledctl -pwm ");
                 sleep_ms(1);
                 mSenderActivity.sendSerialString(iRed + " ");
                 sleep_ms(1);
@@ -90,13 +98,16 @@ public class FragmentLiveControlLamp extends Fragment {
         mButtonRainbow50.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 String str;
-                if (rainbowOn) {
+                if (rainbowState == 0) {
                     str = "ledctl -lsd 50\r\n";
-                    rainbowOn = false;
+                    rainbowState = 50;
                 }
-                else {
+                else if (rainbowState == 50) {
                     str = "ledctl -lsd 300\r\n";
-                    rainbowOn = true;
+                    rainbowState = 300;
+                } else {
+                    str = "ledctl -lsd -quit\r\n";
+                    rainbowState = 0;
                 }
                 mSenderActivity.sendSerialString(str);
             }

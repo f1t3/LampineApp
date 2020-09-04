@@ -30,8 +30,10 @@
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
     <string name="send_button_text">Send</string>
-
+    <string name="slider_intensity_text">Light Intensity</string>
+    <string name="slider_color_text">Color Selection</string>
     <!-- Dialog Messages -->
+
     <string name="permit_location">The Android System requires you to permit location access in order to detect Bluetooth LE devices.\nYou may find this strange and so do we. Thank you Google!</string>
 
 </resources>

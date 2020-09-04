@@ -6,25 +6,52 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   id="svg8"
-   version="1.1"
-   viewBox="0 0 315.91251 27.252083"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   inkscape:export-ydpi="300"
+   inkscape:export-xdpi="300"
+   inkscape:export-filename="/home/and/git/_LampineApp/svg/spectrum_linear.png"
+   sodipodi:docname="spectrum_linear.svg"
+   width="315.91251mm"
    height="27.252083mm"
-   width="315.91251mm">
+   viewBox="0 0 315.91251 27.252083"
+   version="1.1"
+   id="svg8">
+  <sodipodi:namedview
+     inkscape:current-layer="svg8"
+     inkscape:window-maximized="1"
+     inkscape:window-y="20"
+     inkscape:window-x="0"
+     inkscape:cy="51.499999"
+     inkscape:cx="599.205"
+     inkscape:zoom="0.90703516"
+     showgrid="false"
+     id="namedview9"
+     inkscape:window-height="1060"
+     inkscape:window-width="1920"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
   <defs
      id="defs2">
     <clipPath
-       id="clipPath901"
-       clipPathUnits="userSpaceOnUse">
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath901">
       <rect
-         rx="13.626"
-         ry="13.626"
-         y="134.54062"
-         x="-52.122921"
-         height="27.252083"
-         width="315.91251"
+         style="opacity:0.553;fill:#000000;fill-opacity:1;stroke-width:0.264583"
          id="rect903"
-         style="opacity:0.553;fill:#000000;fill-opacity:1;stroke-width:0.264583" />
+         width="315.91251"
+         height="27.252083"
+         x="-52.122921"
+         y="134.54062"
+         ry="13.626"
+         rx="13.626" />
     </clipPath>
   </defs>
   <metadata
@@ -35,38 +62,22 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     transform="translate(52.122921,-134.54062)"
-     id="layer1">
+     id="layer1"
+     transform="translate(52.122921,-134.54062)">
     <image
-       clip-path="url(#clipPath901)"
-       id="image895"
-       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABKoAAABnCAIAAACvuz09AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAD
-EElEQVR4Xu3XMW7bQBBA0SER+Axuc38gRzRTyDIUGySowomU/x4IgcPd7bbQX369/Hid7XV7+7ls
-s8z7s86s1/ePLyfHv3n29svl5Xj/3ujs+XHdX7qO28wss13Ht5nt5vkYLy8nV59x8/Hqg2w+Xv23
-m7eZmWXefz89t9fuxKXcHZ09Pz7F2bs2LzPr9f4tMzPb8vkW7t3R49HZ8+NdZ+/a/FBn/7x2t9fx
-y43cXf2+zcerz7j5ePVBNh+vXsa5/pm6fPlysfau3fHo7Pnx/zy7DgAAAAHyDwAAIEH+AQAAJMg/
-AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8A
-AAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMA
-AEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAA
-IEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACA
-BPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS
-5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQ
-fwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+
-AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkH
-AACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8A
-AECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAASfgOnl1b1cM8ZPgAAAABJ
-RU5ErkJggg==
-"
-       style="image-rendering:optimizeQuality"
-       preserveAspectRatio="none"
-       height="27.252083"
-       width="315.91251"
+       y="134.54062"
        x="-52.122921"
-       y="134.54062" />
+       width="315.91251"
+       height="27.252083"
+       preserveAspectRatio="none"
+       style="image-rendering:optimizeQuality"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABKoAAABnCAIAAACvuz09AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAD EElEQVR4Xu3XMW7bQBBA0SER+Axuc38gRzRTyDIUGySowomU/x4IgcPd7bbQX369/Hid7XV7+7ls s8z7s86s1/ePLyfHv3n29svl5Xj/3ujs+XHdX7qO28wss13Ht5nt5vkYLy8nV59x8/Hqg2w+Xv23 m7eZmWXefz89t9fuxKXcHZ09Pz7F2bs2LzPr9f4tMzPb8vkW7t3R49HZ8+NdZ+/a/FBn/7x2t9fx y43cXf2+zcerz7j5ePVBNh+vXsa5/pm6fPlysfau3fHo7Pnx/zy7DgAAAAHyDwAAIEH+AQAAJMg/ AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8A AAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMA AEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAA IEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACA BPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS 5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQ fwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+ AQAAJMg/AACABPkHAACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkH AACQIP8AAAAS5B8AAECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAAS5B8A AECC/AMAAEiQfwAAAAnyDwAAIEH+AQAAJMg/AACABPkHAACQIP8AAAASfgOnl1b1cM8ZPgAAAABJ RU5ErkJggg== "
+       id="image895"
+       clip-path="url(#clipPath901)" />
   </g>
 </svg>
