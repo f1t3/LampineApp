@@ -80,9 +80,22 @@
             android:text="@string/slider_color_text"
             android:textColor="@color/colorTextHeadings"
             android:textSize="16sp" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Switch
+            android:id="@+id/live_control_color_mode_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
+            android:checked="true" />
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/live_control_color_picker_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 

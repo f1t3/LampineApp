@@ -6,5 +6,6 @@
     <color name="colorIconActive">#121212</color>
 
     <color name="colorAccent">#FF5722</color>
+    <color name="colorAccent2">#049709</color>
     <color name="colorTextHeadings">#050505</color>
 </resources>

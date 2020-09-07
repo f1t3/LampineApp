@@ -39,7 +39,6 @@ import android.app.Fragment;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentActivity;
 
 import com.btle.BluetoothLeService;
 import com.btle.SampleGattAttributes;
@@ -53,7 +52,7 @@ import java.util.ArrayList;
  * turn interacts with the Bluetooth LE API.
  */
 public class ActivityLampConnected extends AppCompatActivity {
-	private ImageButton mButtonLiveControlLamp, mButtonConfigureLamp, mButtonDisplayLampInfo;
+	private ImageButton mButtonLiveControlLamp, mButtonConfigureLamp, mButtonDisplayLampInfo, mButtonLampConsole;
 	private Fragment mCurrentUiAreaFragment, mLastUiAreaFragment;
 	private ActionBar mActionBar;
 
@@ -61,8 +60,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 			.getSimpleName();
 
 	// TODO: CHECK IMPLEMENTATION
-	private String receiveBuffer;
-	private boolean receiveBufferEmpty = true;
+	private String mReceiveBuffer = "";
 	SerialReceiveCallbackFunction mSerialReceiveCallbackFunction;
 
 	public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
@@ -138,21 +136,19 @@ public class ActivityLampConnected extends AppCompatActivity {
 				// .getSupportedGattServices());
 			} else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
 				// TODO: CHECK IMPLEMENTATION RECEIVER
-				receiveBuffer = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
-				Log.d(TAG,"Received data: \"" + receiveBuffer + "\"");
-				mSerialReceiveCallbackFunction.onSerialDataReceived(receiveBuffer);
+				final String receivedMessage = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
+				Log.d(TAG,"Received data: \"" + receivedMessage + "\"");
+
+				// Notify listeners only when line is completed,
+				// otherwise attach new message to buffer
+				mReceiveBuffer += receivedMessage;
+				if (receivedMessage.endsWith("\r\n")) {
+					mSerialReceiveCallbackFunction.onSerialDataReceived(mReceiveBuffer);
+					mReceiveBuffer = "";
+				}
 			}
 		}
 	};
-
-	public String readAndClearRxBuffer() {
-		if (receiveBufferEmpty)	{
-			return null;
-		} else {
-			receiveBufferEmpty = true;
-			return receiveBuffer;
-		}
-	}
 
 	// If a given GATT characteristic is selected, check for supported features.
 	// This sample
@@ -220,6 +216,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 		// Get UI elements, define listeners
 		mButtonLiveControlLamp = findViewById(R.id.button_lamp_live_control);
 		mButtonLiveControlLamp.setOnClickListener(new View.OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				replaceHighlightedNavigationButton(mButtonLiveControlLamp);
 				replaceCurrentUiAreaFragment(new FragmentLiveControlLamp());
@@ -228,6 +225,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 		});
 		mButtonConfigureLamp = findViewById(R.id.button_configure_lamp);
 		mButtonConfigureLamp.setOnClickListener(new View.OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				replaceHighlightedNavigationButton(mButtonConfigureLamp);
 				replaceCurrentUiAreaFragment(new FragmentConfigureLamp());
@@ -236,11 +234,20 @@ public class ActivityLampConnected extends AppCompatActivity {
 		});
 		mButtonDisplayLampInfo = findViewById(R.id.button_lamp_info);
 		mButtonDisplayLampInfo.setOnClickListener(new View.OnClickListener() {
+			@Override
 			public void onClick(View v) {
 				replaceHighlightedNavigationButton(mButtonDisplayLampInfo);
 				replaceCurrentUiAreaFragment(new FragmentDisplayLampInfo());
 				//mActionBar.setSubtitle(R.string.title_lamp_info);
 
+			}
+		});
+		mButtonLampConsole = findViewById(R.id.button_lamp_console);
+		mButtonLampConsole.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				replaceHighlightedNavigationButton(mButtonLampConsole);
+				replaceCurrentUiAreaFragment(new FragmentLampConsole());
 			}
 		});
 

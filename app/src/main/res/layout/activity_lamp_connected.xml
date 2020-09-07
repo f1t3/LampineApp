@@ -54,5 +54,17 @@
             android:scaleType="fitCenter"
             android:src="@drawable/ic_info_black_rounded_24dp"
             android:tint="@color/colorIconInactive" />
+
+        <ImageButton
+            android:id="@+id/button_lamp_console"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:background="@color/colorPrimary"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_developer_mode_black_24dp"
+            android:tint="@color/colorIconInactive" />
     </LinearLayout>
 </LinearLayout>

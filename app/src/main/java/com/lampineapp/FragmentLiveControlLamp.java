@@ -8,14 +8,21 @@ import android.view.ViewGroup;
 
 import android.app.Fragment;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.RadioGroup;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.material.slider.Slider;
 
 public class FragmentLiveControlLamp extends Fragment {
 
+    Switch mSwitchColoredMode;
+    ConstraintLayout mConstraintLayoutColorPicker;
     View mSliderColorIndicatorLine;
     Slider mSliderIntensity, mSliderColor;
     Slider.OnChangeListener mSliderColorOnChangeListener;
@@ -35,8 +42,23 @@ public class FragmentLiveControlLamp extends Fragment {
         // Inflate the layout for this fragment
         View v =  inflater.inflate(R.layout.fragment_live_control_lamp, container, false);
 
+        // Color mode switch
+        mSwitchColoredMode = v.findViewById(R.id.live_control_color_mode_switch);
+        mSwitchColoredMode.setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    // Colored mode
+                    mConstraintLayoutColorPicker.setVisibility(View.VISIBLE);
+                } else {
+                    // No colored mode
+                    mConstraintLayoutColorPicker.setVisibility(View.GONE);
+                }
+            }
+        });
 
         // Color slider
+        mConstraintLayoutColorPicker = v.findViewById(R.id.live_control_color_picker_layout);
         mSliderColorIndicatorLine = v.findViewById(R.id.color_slider_indicator_line);
         mTextViewColorPicker = v.findViewById(R.id.live_control_color_picker_title);
         mSliderColor = v.findViewById(R.id.live_control_color_slider);
