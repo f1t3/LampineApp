@@ -1,15 +1,12 @@
 package com.lampineapp;
 
 import android.app.Fragment;
-import android.bluetooth.BluetoothDevice;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -58,11 +55,11 @@ public class FragmentLampConsole extends Fragment {
                 // Send line
                 mSenderActivity.sendSerialString(line);
 
-                // Add line to list view
+                // Add line to list view and scroll to bottom
                 final SerialLine serialLine = new SerialLine(line, true);
                 mSerialTerminalListViewAdapter.addLine(serialLine);
                 mSerialTerminalListViewAdapter.notifyDataSetChanged();
-
+                mListView.smoothScrollToPosition(mSerialTerminalListViewAdapter.getCount());
             }
         });
 
@@ -73,22 +70,23 @@ public class FragmentLampConsole extends Fragment {
                 final SerialLine serialLine = new SerialLine(data, false);
                 mSerialTerminalListViewAdapter.addLine(serialLine);
                 mSerialTerminalListViewAdapter.notifyDataSetChanged();
+                mListView.smoothScrollToPosition(mSerialTerminalListViewAdapter.getCount());
             }
         });
 
         return v;
     }
 
-    // Adapter for holding devices found through scanning.
+    // Adapter for holding serial lines
     private class SerialTerminalListViewAdapter extends BaseAdapter {
         private ArrayList<SerialLine> mSerialLinesArrayList;
-        private LayoutInflater mInflator;
+        private LayoutInflater mInflater;
 
         public SerialTerminalListViewAdapter() {
             super();
             mSerialLinesArrayList = new ArrayList<SerialLine>();
             // TODO: IS THIS CORRECT??
-            mInflator = mSenderActivity.getLayoutInflater();
+            mInflater = mSenderActivity.getLayoutInflater();
         }
 
         public void addLine(SerialLine serialLine) {
@@ -123,7 +121,7 @@ public class FragmentLampConsole extends Fragment {
             ViewHolder viewHolder;
             // General ListView optimization code.
             if (view == null) {
-                view = mInflator.inflate(R.layout.fragment_serial_terminal_line_item, null);
+                view = mInflater.inflate(R.layout.fragment_serial_terminal_line_item, null);
                 viewHolder = new ViewHolder();
                 viewHolder.textViewTimeStamp = (TextView) view.findViewById(R.id.serial_terminal_line_text_edit_timestamp);
                 viewHolder.textViewSerialLine = (TextView) view.findViewById(R.id.serial_terminal_line_text_edit_linetext);

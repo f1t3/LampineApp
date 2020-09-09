@@ -21,7 +21,7 @@
     <TextView
         android:id="@+id/serial_terminal_line_text_edit_timestamp"
         android:layout_width="wrap_content"
-        android:layout_height="72dp"
+        android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
         android:fontFamily="@font/open_sans"
         android:gravity="center_vertical"
@@ -38,10 +38,12 @@
     <TextView
         android:id="@+id/serial_terminal_line_text_edit_linetext"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:fontFamily="@font/open_sans_light"
         android:gravity="center_vertical"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         android:text="Serial Dummy Line"
         android:textAlignment="viewStart"
         android:textSize="14sp" />

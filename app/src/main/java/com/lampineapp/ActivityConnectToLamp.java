@@ -314,8 +314,6 @@ public class ActivityConnectToLamp extends AppCompatActivity {
 
     // Tests weather BTLE device is valid Lampine device
     private boolean isValidLampineDevice(BluetoothDevice device) {
-        return true;
-        /*
         if (device == null)
             return false;
         final String name = device.getName();
@@ -325,7 +323,6 @@ public class ActivityConnectToLamp extends AppCompatActivity {
             return true;
         }
         return false;
-        */
     }
 
 }

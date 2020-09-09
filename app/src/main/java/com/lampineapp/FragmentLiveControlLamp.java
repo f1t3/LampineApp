@@ -31,6 +31,7 @@ public class FragmentLiveControlLamp extends Fragment {
     ActivityLampConnected mSenderActivity;
 
     int rainbowState = 0;
+    boolean mAckReceived = true;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,12 +67,30 @@ public class FragmentLiveControlLamp extends Fragment {
             @Override
             public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
                 // Remove listener for time of processing current change
-                mSliderColor.removeOnChangeListener(mSliderColorOnChangeListener);
+                //mSliderColor.removeOnChangeListener(mSliderColorOnChangeListener);
 
                 // Redraw line over slider
                 //int indicatorXPos = (int)(mSliderColor.getPaddingStart() + mSliderColor.getTranslationX());
                 int indicatorXPos = (int)(mSliderColor.getPaddingLeft() + value / 359 * mSliderColor.getTrackWidth());
                 mSliderColorIndicatorLine.setTranslationX(indicatorXPos);
+
+                // Prepare listener for ACK
+                mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
+                    @Override
+                    public void onSerialDataReceived(String data) {
+                        if (data.contains("ACK"))
+                            mAckReceived = true;
+                    }
+                });
+
+                // If last message was not ACK'd yet, skip this one
+                if (mAckReceived == false) {
+                   // mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
+                    return;
+                }
+
+                // ACK was received, so clear
+                mAckReceived = false;
 
                 // Calculate RGB values scaled from 0 to 1 as linear spectrum
                 float red = 0, green = 0, blue = 0;
@@ -92,25 +111,24 @@ public class FragmentLiveControlLamp extends Fragment {
                 } else if (value >= 240 && value < 300) {
                     red = (value-240) / 60;
                     blue = 1;
-                } else if (value >= 300 && value < 360) {
+                } else if (value >= 300 && value <= 360) {
                     red = 1;
                     blue = 1 - (value-300) / 60;
                 }
                 final int iRed = (int)(255 * red);
                 final int iGreen = (int)(255 * green);
                 final int iBlue = (int)(255 * blue);
-                mSenderActivity.sendSerialString("ledctl -pwm ");
-                sleep_ms(1);
+                mSenderActivity.sendSerialString("ledctl pwm ");
+                sleep_ms(10);
                 mSenderActivity.sendSerialString(iRed + " ");
-                sleep_ms(1);
+                sleep_ms(10);
                 mSenderActivity.sendSerialString(iGreen + " ");
-                sleep_ms(1);
+                sleep_ms(10);
                 mSenderActivity.sendSerialString(iBlue + "\r\n");
 
                 // Re-add listener after short delay
                 // TODO: DO SOME VALUE DELTA BASED PREVENT OF SENDING CHANGE VIA SERIAL
-                sleep_ms(20);
-                mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
+                //mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
             }
         };
         mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
@@ -121,14 +139,14 @@ public class FragmentLiveControlLamp extends Fragment {
             public void onClick(View v) {
                 String str;
                 if (rainbowState == 0) {
-                    str = "ledctl -lsd 50\r\n";
+                    str = "ledctl lsd 50\r\n";
                     rainbowState = 50;
                 }
                 else if (rainbowState == 50) {
-                    str = "ledctl -lsd 300\r\n";
+                    str = "ledctl lsd 300\r\n";
                     rainbowState = 300;
                 } else {
-                    str = "ledctl -lsd -quit\r\n";
+                    str = "ledctl lsd quit\r\n";
                     rainbowState = 0;
                 }
                 mSenderActivity.sendSerialString(str);
@@ -137,7 +155,7 @@ public class FragmentLiveControlLamp extends Fragment {
         mButtonRainbow200 = v.findViewById(R.id.button_rainbow_200);
         mButtonRainbow200.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                ((ActivityLampConnected)getActivity()).sendSerialString("ledctl -help");
+                ((ActivityLampConnected)getActivity()).sendSerialString("ledctl help");
             }
         });
 

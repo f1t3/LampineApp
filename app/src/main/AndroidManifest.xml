@@ -20,9 +20,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LampDeveloperInterfaceActivity"/>
-        <activity android:name=".ActivityLampConnected"/>
-
+        <activity android:name=".ActivityLampConnected"
+            android:windowSoftInputMode="adjustResize">
+        </activity>
 
         <!-- Services -->
         <service android:name="com.btle.BluetoothLeService"
