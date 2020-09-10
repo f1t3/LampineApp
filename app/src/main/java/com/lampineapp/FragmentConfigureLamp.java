@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -19,7 +20,7 @@ public class FragmentConfigureLamp extends Fragment {
 
     ActivityLampConnected mSenderActivity;
     ListView mListView;
-    ImageButton mButtonSelectWhiteModes, mButtonSelectColoredModes;
+    Button mButtonSelectWhiteModes, mButtonSelectColoredModes;
     LampModesConfigListViewAdapter mLampModesConfigsListViewAdapter;
 
     @Override
@@ -29,7 +30,7 @@ public class FragmentConfigureLamp extends Fragment {
         mSenderActivity = ((ActivityLampConnected) getActivity());
 
         // Inflate the layout for this fragment
-        final View v = inflater.inflate(R.layout.fragment_serial_terminal, container, false);
+        final View v = inflater.inflate(R.layout.fragment_configure_lamp, container, false);
 
         // List view
         mLampModesConfigsListViewAdapter = new LampModesConfigListViewAdapter();
@@ -49,6 +50,8 @@ public class FragmentConfigureLamp extends Fragment {
             @Override
             public void onClick(View view) {
                 // TODO: IMPLEMENT!
+                // Request white configuration modes from lamp
+                mSenderActivity.sendSerialString("confctl print whitemodes\r\n");
             }
         });
 
@@ -65,15 +68,19 @@ public class FragmentConfigureLamp extends Fragment {
         mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
             @Override
             public void onSerialDataReceived(String data) {
-                // TODO: IMPLEMENT!
-//                final FragmentLampConsole.SerialLine serialLine = new FragmentLampConsole.SerialLine(data, false);
-//                mLampModesConfigsListViewAdapter.addLine(serialLine);
-//                mLampModesConfigsListViewAdapter.notifyDataSetChanged();
-//                mListView.smoothScrollToPosition(mLampModesConfigsListViewAdapter.getCount());
+                // TODO: PARSE AS CSV?
+                final LampModeConfigurationItem configurationItem = new LampModeConfigurationItem(data, data);
+                mLampModesConfigsListViewAdapter.addModeConfigItem(configurationItem);
+                mLampModesConfigsListViewAdapter.notifyDataSetChanged();
             }
         });
 
         return v;
+    }
+
+
+    public void onResume() {
+        super.onResume();
     }
 
     // Adapter for configuration items
@@ -118,60 +125,58 @@ public class FragmentConfigureLamp extends Fragment {
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
 
-            // TODO: CONTINUE
-            FragmentLampConsole.ViewHolder viewHolder;
+            ViewHolder viewHolder;
             // General ListView optimization code.
             if (view == null) {
-                view = mInflater.inflate(R.layout.fragment_serial_terminal_line_item, null);
-                viewHolder = new FragmentLampConsole.ViewHolder();
-                viewHolder.textViewTimeStamp = (TextView) view.findViewById(R.id.serial_terminal_line_text_edit_timestamp);
-                viewHolder.textViewSerialLine = (TextView) view.findViewById(R.id.serial_terminal_line_text_edit_linetext);
+                view = mInflater.inflate(R.layout.fragment_configure_lamp_config_item, null);
+                viewHolder = new ViewHolder();
+                viewHolder.textViewLampConfigItemName = (TextView) view.findViewById(R.id.text_view_lamp_config_item_name);
+                viewHolder.textViewLampConfigItemCurrent = (TextView) view.findViewById(R.id.text_view_lamp_config_item_current);
                 view.setTag(viewHolder);
             } else {
-                viewHolder = (FragmentLampConsole.ViewHolder) view.getTag();
+                viewHolder = (ViewHolder) view.getTag();
             }
 
-            FragmentLampConsole.SerialLine line = mLampModeConfigurationItemList.get(i);
-            viewHolder.textViewTimeStamp.setText(line.getTimeStamp());
-            viewHolder.textViewSerialLine.setText(line.getSerialMessageWithoutLinefeedAtEnd());
-            int color;
-            if (line.isRxLine()) {
-                color = getResources().getColor(R.color.colorAccent2);
-            } else {
-                color = getResources().getColor(R.color.colorAccent);
-            }
-            viewHolder.textViewSerialLine.setTextColor(color);
+            LampModeConfigurationItem configurationItem = mLampModeConfigurationItemList.get(i);
+            viewHolder.textViewLampConfigItemName.setText(configurationItem.getName());
+            viewHolder.textViewLampConfigItemCurrent.setText(configurationItem.getCurrent());
 
             return view;
         }
     }
 
+    static class ViewHolder {
+        TextView textViewLampConfigItemName;
+        TextView textViewLampConfigItemCurrent;
+    }
+
     static class LampModeConfigurationItem {
-        private String mTimeStamp;
-        private String mSerialMessage;
-        private boolean mIsRxLine;
+        private String mName;
+        private String mCurrent;
 
-        public LampModeConfigurationItem(String serialMessage, boolean isRxLine) {
-            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("hh:mm:ss.SSS");
-            mTimeStamp = simpleDateFormat.format(new Date());
-            mSerialMessage = serialMessage;
-            mIsRxLine = isRxLine;
+        public LampModeConfigurationItem() {
+            super();
         }
 
-        public String getTimeStamp() {
-            return mTimeStamp;
+        public LampModeConfigurationItem(String name, String current) {
+            mName = name;
+            mCurrent = current;
         }
 
-        public String getSerialMessage() {
-            return mSerialMessage;
+        public String getName() {
+            return mName;
         }
 
-        public String getSerialMessageWithoutLinefeedAtEnd() {
-            return mSerialMessage.substring(0, mSerialMessage.length() - 2);
+        public String getCurrent() {
+            return mCurrent;
         }
+    }
 
-        public boolean isRxLine() {
-            return mIsRxLine;
+    private void sleep_ms(int time_ms) {
+        try {
+            Thread.sleep(time_ms);
+        } catch (Exception e) {
+            // TODO: catch
         }
     }
 }

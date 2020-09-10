@@ -135,7 +135,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 				// displayGattServices(mBluetoothLeService
 				// .getSupportedGattServices());
 			} else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-				// TODO: CHECK IMPLEMENTATION RECEIVER
+				// Receiver
 				final String receivedMessage = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
 				Log.d(TAG,"Received data: \"" + receivedMessage + "\"");
 
@@ -289,8 +289,6 @@ public class ActivityLampConnected extends AppCompatActivity {
 			} // if
 
 		} // for
-		
-
 	}
 
 	// blechat
@@ -362,18 +360,6 @@ public class ActivityLampConnected extends AppCompatActivity {
 		});
 	}
 
-	private void displayData(String data) {
-		if (data != null) {
-			//mDataField.setText(data);
-			
-			int nlIdx = data.indexOf('\n');  // index of newline
-			
-			// blechat
-			// add received data to screen
-
-		}
-	}
-
 	private static IntentFilter makeGattUpdateIntentFilter() {
 		final IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
@@ -384,41 +370,24 @@ public class ActivityLampConnected extends AppCompatActivity {
 		return intentFilter;
 	}
 
-	// blechat
-	
-	// btnClick
-	// 
-	// Click handler for Send button
-	//
-	public void btnClick(View view) {
-		sendSerial();
-	}
-
-	// blechat
-	//
-	// sendSerial
-	//
-	// Send string io out field
-	// TODO: REMOVE OR MERGE WITH sendSerialString(String str)
-	private void sendSerial() {
-		TextView view = (TextView) findViewById(R.id.edit_text_out); 
-		String message = view.getText().toString() + "\r \n";
-
-		Log.d(TAG, "Sending: \"" + message + "\"");
-		final byte[] tx = message.getBytes();
-		if (mConnected) {
-			characteristicTX.setValue(tx);
-			mBluetoothLeService.writeCharacteristic(characteristicTX);
-		}
-	}
-
 	protected void sendSerialString(String string) {
-		// TODO: THIS METHOD SEEMS ONLY BE CAPABLE OF SENDING 20 BYTES IN A ROW!!!!
-		final String message = string;
-		Log.d(TAG, "Sending: " + message);
-		final byte[] tx = message.getBytes();
+		Log.d(TAG, "Sending: " + string);
+		String str = string;
+		final int PACK_SIZE = 20;
+		// Transmit in packages of 20, since characteristic cannot exceed 20 bytes
+		while (str.length() > PACK_SIZE) {
+			// Transmit first 10 chars per iteration
+			if (mConnected) {
+				characteristicTX.setValue(str.substring(0, PACK_SIZE).getBytes());
+				mBluetoothLeService.writeCharacteristic(characteristicTX);
+			}
+			str = str.substring(PACK_SIZE);
+			sleep_ms(2);
+		}
+		// Transmit rest of chars
+		final byte[] tx = str.getBytes();
 		if (mConnected) {
-			characteristicTX.setValue(tx);
+			characteristicTX.setValue(str);
 			mBluetoothLeService.writeCharacteristic(characteristicTX);
 		}
 	}
@@ -453,4 +422,11 @@ public class ActivityLampConnected extends AppCompatActivity {
 		button.setColorFilter(this.getColor(R.color.colorIconActive));
 	}
 
+	private void sleep_ms(int time_ms) {
+		try {
+			Thread.sleep(time_ms);
+		} catch (Exception e) {
+			// TODO: catch
+		}
+	}
 }
