@@ -64,11 +64,25 @@ public class FragmentConfigureLamp extends Fragment {
             }
         });
 
+        // Position of values in config-CSV
+        final int NAME_POS = 0;
+        final int CURRENT_POS = 1;
+        final int N_RGBW_POINTS = 2;
+        final int START_RGBW_POINTS = 3;
         // Receive modes from lamp listener
         mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
             @Override
             public void onSerialDataReceived(String data) {
-                // TODO: PARSE AS CSV?
+                // TODO: PARSE CSV CONFIGS.
+                // VALUE DELIMITER: ,
+                // CONFIG DELIMITER: \n
+                // Individual configs are separated by \n
+                final String[] configArray = data.split("\n");
+                for (String value : configArray) {
+                    // Values in config are separated by ,
+                    String[] valueArray = value.split(",");
+
+                }
                 final LampModeConfigurationItem configurationItem = new LampModeConfigurationItem(data, data);
                 mLampModesConfigsListViewAdapter.addModeConfigItem(configurationItem);
                 mLampModesConfigsListViewAdapter.notifyDataSetChanged();
