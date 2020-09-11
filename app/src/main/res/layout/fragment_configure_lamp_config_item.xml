@@ -26,17 +26,10 @@
         android:layout_height="wrap_content"
         android:text="DummyName" />
 
-    <ImageView
-        android:id="@+id/imageView4"
+    <View
+        android:id="@+id/color_graph_view_lanp_config_item"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        app:srcCompat="@drawable/spectrum_linear" />
-
-    <ImageView
-        android:id="@+id/imageView5"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        app:srcCompat="@drawable/spectrum_linear" />
+        android:layout_height="48dp" />
 
     <TextView
         android:id="@+id/text_view_lamp_config_item_current"
