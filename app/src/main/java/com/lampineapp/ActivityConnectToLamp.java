@@ -31,7 +31,7 @@ import java.util.ArrayList;
 public class
 ActivityConnectToLamp extends AppCompatActivity {
 
-    private final boolean ALLOW_ALL_BTLE_DEVICES = true;
+    final boolean LIST_ALL_BTLE_DEVICES = true;
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private ListView mListView;
     private BluetoothAdapter mBluetoothAdapter;
@@ -300,7 +300,7 @@ ActivityConnectToLamp extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (isValidLampineDevice(device)) {
+                            if (isValidLampineDevice(device) || LIST_ALL_BTLE_DEVICES) {
                                 mLeDeviceListAdapter.addDevice(device);
                                 mLeDeviceListAdapter.notifyDataSetChanged();
                             }
@@ -316,9 +316,6 @@ ActivityConnectToLamp extends AppCompatActivity {
 
     // Tests weather BTLE device is valid Lampine device
     private boolean isValidLampineDevice(BluetoothDevice device) {
-        if (ALLOW_ALL_BTLE_DEVICES) {
-            return true;
-        }
         if (device == null)
             return false;
         final String name = device.getName();

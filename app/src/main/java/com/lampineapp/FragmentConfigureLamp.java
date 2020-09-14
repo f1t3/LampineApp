@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +17,15 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.lampineapp.graphics.ColorGraphView;
+import com.lampineapp.helper.DataHelpers;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+
+import static com.lampineapp.helper.DataHelpers.parseStringArrayToIntArray;
 
 public class FragmentConfigureLamp extends Fragment {
 
@@ -61,7 +67,7 @@ public class FragmentConfigureLamp extends Fragment {
                 //TODO: REMOVE DUMMY RX
                 // DUMMY RX:
                 final String dummydata = "Mode1,1mA,100,4,0,0,0,0,0,0,0,0,0,0,0,0,255,128,64,32\n";
-                LampModeConfigurationItem[] configItemArray = parseConfigItemString(dummydata);
+                LampModeConfigurationItem[] configItemArray = parseLampModeConfigsFromString(dummydata);
                 for (LampModeConfigurationItem configItem : configItemArray) {
                     mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
                     mLampModesConfigsListViewAdapter.notifyDataSetChanged();
@@ -85,7 +91,7 @@ public class FragmentConfigureLamp extends Fragment {
             @Override
             public void onSerialDataReceived(String data) {
                 // TODO: PARSE CSV CONFIGS.
-                LampModeConfigurationItem[] configItemArray = parseConfigItemString(data);
+                LampModeConfigurationItem[] configItemArray = parseLampModeConfigsFromString(data);
                 for (LampModeConfigurationItem configItem : configItemArray) {
                     mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
                     mLampModesConfigsListViewAdapter.notifyDataSetChanged();
@@ -96,7 +102,11 @@ public class FragmentConfigureLamp extends Fragment {
         return v;
     }
 
-    private LampModeConfigurationItem[] parseConfigItemString(String str) {
+    public LampModeConfigurationItem[] parseLampModeConfigsFromString(String str) {
+        // Delimiters
+        final String MODE_DELIM = "\n";
+        final String VALUE_DELIM = ",";
+        final String END_OF_DATA = "\r";
         // Position of values in config-CSV
         final int NAME_POS = 0;
         final int CURRENT_POS = 1;
@@ -104,39 +114,38 @@ public class FragmentConfigureLamp extends Fragment {
         final int N_RGBW_POINTS = 3;
         final int START_RGBW_POINTS = 4;
 
-        // Individual configs are separated by \n
-        final String[] configArray = str.split("\n");
-        LampModeConfigurationItem configItemArray[] =
-                new LampModeConfigurationItem[configArray.length];
+        final String[] configArray = str.split(MODE_DELIM);
+        LampModeConfigurationItem[] ret = new LampModeConfigurationItem[configArray.length];
+
         for (int i = 0; i < configArray.length; i++) {
-            LampModeConfigurationItem configItem = new LampModeConfigurationItem();
-            if (configArray[i].contains("\r"))
+            if (configArray[i].contains(END_OF_DATA))
                 break;
-            // Values in config are separated by ,
-            String[] valueArray = configArray[i].split(",");
-            configItem.setName(valueArray[NAME_POS]);
-            configItem.setCurrent(valueArray[CURRENT_POS]);
-            configItem.setPeriodPerPoint_ms(Integer.parseInt(valueArray[PERIOD_PER_POINT_MS_POS]));
+            String[] valueArray = configArray[i].split(VALUE_DELIM);
+            LampModeConfigurationItem configurationItem = new LampModeConfigurationItem();
+            configurationItem.setName(valueArray[NAME_POS]);
+            configurationItem.setCurrent(valueArray[CURRENT_POS]);
+            configurationItem.setPeriodPerPoint_ms(Integer.parseInt(valueArray[PERIOD_PER_POINT_MS_POS]));
             int nRgbwPoints = Integer.parseInt(valueArray[N_RGBW_POINTS]);
-            configItem.setNRgbwPoints(nRgbwPoints);
+            configurationItem.setNRgbwPoints(nRgbwPoints);
 
             // Parse RGBW points subarrays
             int[][] colorMatrix = new int[4][N_RGBW_POINTS];
             for (int colorIndex = 0; colorIndex < 4; colorIndex++) {
                 final int startIndex = START_RGBW_POINTS + colorIndex * nRgbwPoints;
-                final int stopIndex = START_RGBW_POINTS + (colorIndex + 1) * nRgbwPoints;
+                final int stopIndex = START_RGBW_POINTS + (colorIndex+1) * nRgbwPoints;
                 final String[] colorValueArray = Arrays.
-                        copyOfRange(valueArray, startIndex, stopIndex - 1);
+                        copyOfRange(valueArray, startIndex, stopIndex-1);
                 colorMatrix[colorIndex] = parseStringArrayToIntArray(colorValueArray);
             }
-            configItem.setRPoints(colorMatrix[0]);
-            configItem.setGPoints(colorMatrix[1]);
-            configItem.setBPoints(colorMatrix[2]);
-            configItem.setWPoints(colorMatrix[3]);
-            configItemArray[i] = configItem;
+            configurationItem.setRPoints(colorMatrix[0]);
+            configurationItem.setGPoints(colorMatrix[1]);
+            configurationItem.setBPoints(colorMatrix[2]);
+            configurationItem.setWPoints(colorMatrix[3]);
+            ret[i] = configurationItem;
         }
-        return configItemArray;
+        return ret;
     }
+
 
     public void onResume() {
         super.onResume();
@@ -191,7 +200,12 @@ public class FragmentConfigureLamp extends Fragment {
                 viewHolder = new ViewHolder();
                 viewHolder.textViewLampConfigItemName = (TextView) view.findViewById(R.id.text_view_lamp_config_item_name);
                 viewHolder.textViewLampConfigItemCurrent = (TextView) view.findViewById(R.id.text_view_lamp_config_item_current);
-                viewHolder.colorGraphView = (ColorGraphView) view.findViewById(R.id.color_graph_view_lanp_config_item);
+                ColorGraphView colorGraphView = (ColorGraphView) view.findViewById(R.id.color_graph_view_lanp_config_item);
+                float mDummyY[] = {0, 255, 10, 40, 100, 255, 60};
+                colorGraphView.setData(mDummyY);
+                final int colors[] = {R.color.colorAccent, R.color.colorAccent2,R.color.colorAccent3,R.color.colorAccent4, R.color.colorAccent5, R.color.colorAccent6, R.color.colorAccent7};
+                colorGraphView.setColor(colors);
+                viewHolder.colorGraphView = colorGraphView;
                 view.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) view.getTag();
@@ -201,25 +215,10 @@ public class FragmentConfigureLamp extends Fragment {
             viewHolder.textViewLampConfigItemName.setText(configurationItem.getName());
             viewHolder.textViewLampConfigItemCurrent.setText(configurationItem.getCurrent());
 
-
             // Draw W Graph
             // TODO: CALCULATE ACTUAL COLOR VALUES
 
             return view;
-        }
-    }
-
-    static class ColorGraphView extends View {
-        Paint mPaint = new Paint();
-
-        public ColorGraphView(Context context) {
-            super (context);
-        }
-
-        @Override
-        public void onDraw(Canvas canvas) {
-            mPaint.setColor(getResources().getColor(R.color.colorAccent));
-            canvas.drawLine(0,100, 200,0, mPaint);
         }
     }
 
@@ -260,21 +259,5 @@ public class FragmentConfigureLamp extends Fragment {
         public void setGPoints(int[] gPoints) { mGPoints = gPoints; }
         public void setBPoints(int[] bPoints) { mBPoints = bPoints; }
         public void setWPoints(int[] wPoints) { mWPoints = wPoints; }
-    }
-
-    private int[] parseStringArrayToIntArray(String[] stringArray) {
-        int[] ret = new int[stringArray.length];
-        for (int i = 0; i < stringArray.length; i++) {
-            ret[i] = Integer.parseInt(stringArray[i]);
-        }
-        return ret;
-    }
-
-    private void sleep_ms(int time_ms) {
-        try {
-            Thread.sleep(time_ms);
-        } catch (Exception e) {
-            // TODO: catch
-        }
     }
 }
