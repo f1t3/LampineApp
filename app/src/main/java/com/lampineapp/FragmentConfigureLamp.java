@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +17,15 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.lampineapp.graphics.ColorGraphView;
+import com.lampineapp.helper.DataHelpers;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+
+import static com.lampineapp.helper.DataHelpers.parseStringArrayToIntArray;
 
 public class FragmentConfigureLamp extends Fragment {
 
@@ -174,7 +180,12 @@ public class FragmentConfigureLamp extends Fragment {
                 viewHolder = new ViewHolder();
                 viewHolder.textViewLampConfigItemName = (TextView) view.findViewById(R.id.text_view_lamp_config_item_name);
                 viewHolder.textViewLampConfigItemCurrent = (TextView) view.findViewById(R.id.text_view_lamp_config_item_current);
-                viewHolder.colorGraphView = view.findViewById(R.id.color_graph_view_lanp_config_item);
+                ColorGraphView colorGraphView = (ColorGraphView) view.findViewById(R.id.color_graph_view_lanp_config_item);
+                float mDummyY[] = {0, 255, 10, 40, 100, 255, 60};
+                colorGraphView.setData(mDummyY);
+                final int colors[] = {R.color.colorAccent, R.color.colorAccent2,R.color.colorAccent3,R.color.colorAccent4, R.color.colorAccent5, R.color.colorAccent6, R.color.colorAccent7};
+                colorGraphView.setColor(colors);
+                viewHolder.colorGraphView = colorGraphView;
                 view.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) view.getTag();
@@ -184,25 +195,10 @@ public class FragmentConfigureLamp extends Fragment {
             viewHolder.textViewLampConfigItemName.setText(configurationItem.getName());
             viewHolder.textViewLampConfigItemCurrent.setText(configurationItem.getCurrent());
 
-
             // Draw W Graph
             // TODO: CALCULATE ACTUAL COLOR VALUES
 
             return view;
-        }
-    }
-
-    static class ColorGraphView extends View {
-        Paint mPaint = new Paint();
-
-        public ColorGraphView(Context context) {
-            super (context);
-        }
-
-        @Override
-        public void onDraw(Canvas canvas) {
-            mPaint.setColor(getResources().getColor(R.color.colorAccent));
-            canvas.drawLine(0,100, 200,0, mPaint);
         }
     }
 
@@ -243,21 +239,5 @@ public class FragmentConfigureLamp extends Fragment {
         public void setGPoints(int[] gPoints) { mGPoints = gPoints; }
         public void setBPoints(int[] bPoints) { mBPoints = bPoints; }
         public void setWPoints(int[] wPoints) { mWPoints = wPoints; }
-    }
-
-    private int[] parseStringArrayToIntArray(String[] stringArray) {
-        int[] ret = new int[stringArray.length];
-        for (int i = 0; i < stringArray.length; i++) {
-            ret[i] = Integer.parseInt(stringArray[i]);
-        }
-        return ret;
-    }
-
-    private void sleep_ms(int time_ms) {
-        try {
-            Thread.sleep(time_ms);
-        } catch (Exception e) {
-            // TODO: catch
-        }
     }
 }
