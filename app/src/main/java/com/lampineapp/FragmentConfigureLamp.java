@@ -63,6 +63,13 @@ public class FragmentConfigureLamp extends Fragment {
                 // TODO: IMPLEMENT!
                 // Request white configuration modes from lamp
                 mSenderActivity.sendSerialString("confctl print whitemodes\r\n");
+                // TODO: REMOVE DUMMY RX!
+                LampModeConfigurationItem[] configArray = parseLampModeConfigsFromString("Mode1,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,250,120,90,40\n\r");
+                for (LampModeConfigurationItem configItem : configArray) {
+                    mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
+                }
+                mLampModesConfigsListViewAdapter.notifyDataSetChanged();
+
             }
         });
 
@@ -75,6 +82,28 @@ public class FragmentConfigureLamp extends Fragment {
             }
         });
 
+        // Receive modes from lamp listener
+        mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
+            @Override
+            public void onSerialDataReceived(String data) {
+                // TODO: PARSE CSV CONFIGS.
+                // TODO: USE PARSER FUNCTION!
+                LampModeConfigurationItem[] configArray = parseLampModeConfigsFromString(data);
+                for (LampModeConfigurationItem configItem : configArray) {
+                    mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
+                }
+                mLampModesConfigsListViewAdapter.notifyDataSetChanged();
+            }
+        });
+
+        return v;
+    }
+
+    public LampModeConfigurationItem[] parseLampModeConfigsFromString(String str) {
+        // Delimiters
+        final String MODE_DELIM = "\n";
+        final String VALUE_DELIM = ",";
+        final String END_OF_DATA = "\r";
         // Position of values in config-CSV
         final int NAME_POS = 0;
         final int CURRENT_POS = 1;
@@ -82,48 +111,36 @@ public class FragmentConfigureLamp extends Fragment {
         final int N_RGBW_POINTS = 3;
         final int START_RGBW_POINTS = 4;
 
-        // Receive modes from lamp listener
-        mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
-            @Override
-            public void onSerialDataReceived(String data) {
-                // TODO: PARSE CSV CONFIGS.
-                // VALUE DELIMITER: ,
-                // CONFIG DELIMITER: \n
-                // Individual configs are separated by \nc
-                final String[] configArray = data.split("\n");
-                for (String value : configArray) {
-                    if (value.contains("\r"))
-                        break;
-                    // Values in config are separated by ,
-                    String[] valueArray = value.split(",");
-                    LampModeConfigurationItem configurationItem = new LampModeConfigurationItem();
-                    configurationItem.setName(valueArray[NAME_POS]);
-                    configurationItem.setCurrent(valueArray[CURRENT_POS]);
-                    configurationItem.setPeriodPerPoint_ms(Integer.parseInt(valueArray[PERIOD_PER_POINT_MS_POS]));
-                    int nRgbwPoints = Integer.parseInt(valueArray[N_RGBW_POINTS]);
-                    configurationItem.setNRgbwPoints(nRgbwPoints);
+        final String[] configArray = str.split(MODE_DELIM);
+        LampModeConfigurationItem[] ret = new LampModeConfigurationItem[configArray.length];
 
-                    // Parse RGBW points subarrays
-                    int[][] colorMatrix = new int[4][N_RGBW_POINTS];
-                    for (int colorIndex = 0; colorIndex < 4; colorIndex++) {
-                        final int startIndex = START_RGBW_POINTS + colorIndex * nRgbwPoints;
-                        final int stopIndex = START_RGBW_POINTS + (colorIndex+1) * nRgbwPoints;
-                        final String[] colorValueArray = Arrays.
-                                copyOfRange(valueArray, startIndex, stopIndex-1);
-                        colorMatrix[colorIndex] = parseStringArrayToIntArray(colorValueArray);
-                    }
-                    configurationItem.setRPoints(colorMatrix[0]);
-                    configurationItem.setGPoints(colorMatrix[1]);
-                    configurationItem.setBPoints(colorMatrix[2]);
-                    configurationItem.setWPoints(colorMatrix[3]);
-                    mLampModesConfigsListViewAdapter.addModeConfigItem(configurationItem);
-                    mLampModesConfigsListViewAdapter.notifyDataSetChanged();
-                }
+        for (int i = 0; i < configArray.length; i++) {
+            if (configArray[i].contains(END_OF_DATA))
+                break;
+            String[] valueArray = configArray[i].split(VALUE_DELIM);
+            LampModeConfigurationItem configurationItem = new LampModeConfigurationItem();
+            configurationItem.setName(valueArray[NAME_POS]);
+            configurationItem.setCurrent(valueArray[CURRENT_POS]);
+            configurationItem.setPeriodPerPoint_ms(Integer.parseInt(valueArray[PERIOD_PER_POINT_MS_POS]));
+            int nRgbwPoints = Integer.parseInt(valueArray[N_RGBW_POINTS]);
+            configurationItem.setNRgbwPoints(nRgbwPoints);
 
+            // Parse RGBW points subarrays
+            int[][] colorMatrix = new int[4][N_RGBW_POINTS];
+            for (int colorIndex = 0; colorIndex < 4; colorIndex++) {
+                final int startIndex = START_RGBW_POINTS + colorIndex * nRgbwPoints;
+                final int stopIndex = START_RGBW_POINTS + (colorIndex+1) * nRgbwPoints;
+                final String[] colorValueArray = Arrays.
+                        copyOfRange(valueArray, startIndex, stopIndex-1);
+                colorMatrix[colorIndex] = parseStringArrayToIntArray(colorValueArray);
             }
-        });
-
-        return v;
+            configurationItem.setRPoints(colorMatrix[0]);
+            configurationItem.setGPoints(colorMatrix[1]);
+            configurationItem.setBPoints(colorMatrix[2]);
+            configurationItem.setWPoints(colorMatrix[3]);
+            ret[i] = configurationItem;
+        }
+        return ret;
     }
 
 

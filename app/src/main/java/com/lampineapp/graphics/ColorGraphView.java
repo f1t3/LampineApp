@@ -46,7 +46,10 @@ public class ColorGraphView extends View {
             // TODO: ACCEPT ACTUAL COLORS ONLY AND REMOVE GETRESOURCES().GETCOLOR();
             int color1 = getResources().getColor(mColor[i]);
             int color2 = getResources().getColor(mColor[i+1]);
-            path.moveTo(x0, y0);
+            // Use only in first run to enable smooth corners
+            if (i == 0) {
+                path.moveTo(x0, y0);
+            }
             path.lineTo(x1, y1);
             mPaint.setShader(new LinearGradient(x0, y0, x1, y1, color1, color2, Shader.TileMode.CLAMP));
             canvas.drawPath(path, mPaint);
