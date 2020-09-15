@@ -58,4 +58,38 @@ public class DataHelpers {
         }
         return ret;
     }
+
+    public static int angleToSpectrumColor(float angle_deg) {
+        final float a = angle_deg;
+        // Calculate RGB values scaled from 0 to 1 as linear spectrum
+        float r = 0, g = 0, b = 0;
+        if (a < 0) {
+            // Dummy
+        } else if (a >= 0 && a < 60) {
+            r = 1;
+            g = a / 60;
+        } else if (a >= 60 && a < 120) {
+            r = 1 - (a - 60) / 60;
+            g = 1;
+        } else if (a >= 120 && a < 180) {
+            g = 1;
+            b = (a - 120) / 60;
+        } else if (a >= 180 && a < 240) {
+            g = 1 - (a - 180) / 60;
+            b = 1;
+        } else if (a >= 240 && a < 300) {
+            r = (a - 240) / 60;
+            b = 1;
+        } else if (a >= 300 && a <= 360) {
+            r = 1;
+            b = 1 - (a - 300) / 60;
+        }
+        final int A = 255;
+        final int R = (int) (255 * r);
+        final int G = (int) (255 * g);
+        final int B = (int) (255 * b);
+        final int color = (A & 0xff) << 24 | (R & 0xff) << 16 | (G & 0xff) << 8 | (B & 0xff);
+        return color;
+    }
+
 }

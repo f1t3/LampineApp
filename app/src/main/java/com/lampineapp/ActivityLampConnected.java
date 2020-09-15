@@ -400,8 +400,8 @@ public class ActivityLampConnected extends AppCompatActivity {
 		mSerialReceiveCallbackFunction = callbackFunction;
 	}
 
-	private void replaceCurrentUiAreaFragment(Fragment fragment) {
-		FragmentManager fm = getFragmentManager();
+	protected void replaceCurrentUiAreaFragment(Fragment fragment) {
+		final FragmentManager fm = getFragmentManager();
 
 		// get and destroy current fragment
 		final Fragment currFragment = fm.findFragmentById(R.id.lamp_connected_ui_fragment_area);

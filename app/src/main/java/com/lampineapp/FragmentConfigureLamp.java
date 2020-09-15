@@ -1,7 +1,9 @@
 package com.lampineapp;
 
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -17,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lampineapp.graphics.ColorGraphView;
 import com.lampineapp.helper.DataHelpers;
 
@@ -25,10 +28,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
+import static com.lampineapp.helper.DataHelpers.getMaxValue;
 import static com.lampineapp.helper.DataHelpers.parseStringArrayToIntArray;
 
 public class FragmentConfigureLamp extends Fragment {
 
+    FloatingActionButton mFab;
     ActivityLampConnected mSenderActivity;
     ListView mListView;
     Button mButtonSelectWhiteModes, mButtonSelectColoredModes;
@@ -37,11 +42,12 @@ public class FragmentConfigureLamp extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Save parent activity through wich BT commands are send
+        // Save parent activity through which BT commands are send
         mSenderActivity = ((ActivityLampConnected) getActivity());
 
         // Inflate the layout for this fragment
-        final View v = inflater.inflate(R.layout.fragment_configure_lamp, container, false);
+        final View v = inflater
+                .inflate(R.layout.fragment_configure_lamp, container, false);
 
         // List view
         mLampModesConfigsListViewAdapter = new LampModesConfigListViewAdapter();
@@ -62,10 +68,11 @@ public class FragmentConfigureLamp extends Fragment {
             public void onClick(View view) {
                 // TODO: IMPLEMENT!
                 // Request white configuration modes from lamp
-               // mSenderActivity.sendSerialString("confctl print whitemodes\r\n");
+                // mSenderActivity.sendSerialString("confctl print whitemodes\r\n");
 
                 //TODO: REMOVE DUMMY RX
-                // DUMMY RX:
+                // DUMMY RX
+                //                            0|  1|  2|3|       |       |       |
                 final String dummydata = "Mode1,1mA,100,4,0,0,0,0,0,0,0,0,0,0,0,0,255,128,64,32\n";
                 LampModeConfigurationItem[] configItemArray = parseLampModeConfigsFromString(dummydata);
                 for (LampModeConfigurationItem configItem : configItemArray) {
@@ -96,6 +103,21 @@ public class FragmentConfigureLamp extends Fragment {
                     mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
                     mLampModesConfigsListViewAdapter.notifyDataSetChanged();
                 }
+            }
+        });
+
+        // Floating action button
+        mFab = v.findViewById(R.id.fab_add_config_item);
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Replace UI with FragmentAddLampMode, add current UI to stack
+                final FragmentAddLampMode fragmentAddLampMode = new FragmentAddLampMode();
+                final FragmentManager fm = mSenderActivity.getFragmentManager();
+                fm.beginTransaction()
+                        .replace(R.id.lamp_connected_ui_fragment_area, fragmentAddLampMode)
+                        .addToBackStack(null)
+                        .commit();
             }
         });
 
@@ -132,9 +154,9 @@ public class FragmentConfigureLamp extends Fragment {
             int[][] colorMatrix = new int[4][N_RGBW_POINTS];
             for (int colorIndex = 0; colorIndex < 4; colorIndex++) {
                 final int startIndex = START_RGBW_POINTS + colorIndex * nRgbwPoints;
-                final int stopIndex = START_RGBW_POINTS + (colorIndex+1) * nRgbwPoints;
+                final int stopIndex = START_RGBW_POINTS + (colorIndex + 1) * nRgbwPoints;
                 final String[] colorValueArray = Arrays.
-                        copyOfRange(valueArray, startIndex, stopIndex-1);
+                        copyOfRange(valueArray, startIndex, stopIndex - 1);
                 colorMatrix[colorIndex] = parseStringArrayToIntArray(colorValueArray);
             }
             configurationItem.setRPoints(colorMatrix[0]);
@@ -149,6 +171,68 @@ public class FragmentConfigureLamp extends Fragment {
 
     public void onResume() {
         super.onResume();
+    }
+
+    static class ViewHolder {
+        TextView textViewLampConfigItemName;
+        TextView textViewLampConfigItemCurrent;
+        ColorGraphView colorGraphView;
+    }
+
+    static class LampModeConfigurationItem {
+        private String mName;
+        private String mCurrent;
+        private int mPeriodPerPoint_ms;
+        private int mNRgbwPoints;
+        private int[] mRPoints, mGPoints, mBPoints, mWPoints;
+
+        public LampModeConfigurationItem() {
+            super();
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public void setName(String name) {
+            mName = name;
+        }
+
+        public String getCurrent() {
+            return mCurrent;
+        }
+
+        public void setCurrent(String current) {
+            mCurrent = current;
+        }
+
+        public int getPeriodPerPoint_ms() {
+            return mPeriodPerPoint_ms;
+        }
+
+        public void setPeriodPerPoint_ms(int period) {
+            mPeriodPerPoint_ms = period;
+        }
+
+        public void setNRgbwPoints(int nPoints) {
+            mNRgbwPoints = nPoints;
+        }
+
+        public void setRPoints(int[] rPoints) {
+            mRPoints = rPoints;
+        }
+
+        public void setGPoints(int[] gPoints) {
+            mGPoints = gPoints;
+        }
+
+        public void setBPoints(int[] bPoints) {
+            mBPoints = bPoints;
+        }
+
+        public void setWPoints(int[] wPoints) {
+            mWPoints = wPoints;
+        }
     }
 
     // Adapter for configuration items
@@ -201,9 +285,9 @@ public class FragmentConfigureLamp extends Fragment {
                 viewHolder.textViewLampConfigItemName = (TextView) view.findViewById(R.id.text_view_lamp_config_item_name);
                 viewHolder.textViewLampConfigItemCurrent = (TextView) view.findViewById(R.id.text_view_lamp_config_item_current);
                 ColorGraphView colorGraphView = (ColorGraphView) view.findViewById(R.id.color_graph_view_lanp_config_item);
-                float mDummyY[] = {0, 255, 10, 40, 100, 255, 60};
+                float mDummyY[] = {0, 255, 10, 0, 20, 255, 60};
                 colorGraphView.setData(mDummyY);
-                final int colors[] = {R.color.colorAccent, R.color.colorAccent2,R.color.colorAccent3,R.color.colorAccent4, R.color.colorAccent5, R.color.colorAccent6, R.color.colorAccent7};
+                final int colors[] = {R.color.colorAccent, R.color.colorAccent2, R.color.colorAccent3, R.color.colorAccent4, R.color.colorAccent5, R.color.colorAccent6, R.color.colorAccent7};
                 colorGraphView.setColor(colors);
                 viewHolder.colorGraphView = colorGraphView;
                 view.setTag(viewHolder);
@@ -220,44 +304,5 @@ public class FragmentConfigureLamp extends Fragment {
 
             return view;
         }
-    }
-
-    static class ViewHolder {
-        TextView textViewLampConfigItemName;
-        TextView textViewLampConfigItemCurrent;
-        ColorGraphView colorGraphView;
-    }
-
-    static class LampModeConfigurationItem {
-        private String mName;
-        private String mCurrent;
-        private int mPeriodPerPoint_ms;
-        private int mNRgbwPoints;
-        private int[] mRPoints, mGPoints, mBPoints, mWPoints;
-
-        public LampModeConfigurationItem() {
-            super();
-        }
-        public String getName() {
-            return mName;
-        }
-        public String getCurrent() {
-            return mCurrent;
-        }
-        public int getPeriodPerPoint_ms() { return mPeriodPerPoint_ms; }
-        public void setName(String name) {
-            mName = name;
-        }
-        public void setCurrent(String current) {
-            mCurrent = current;
-        }
-        public void setPeriodPerPoint_ms(int period) {
-            mPeriodPerPoint_ms = period;
-        }
-        public void setNRgbwPoints(int nPoints) { mNRgbwPoints = nPoints; }
-        public void setRPoints(int[] rPoints) { mRPoints = rPoints; }
-        public void setGPoints(int[] gPoints) { mGPoints = gPoints; }
-        public void setBPoints(int[] bPoints) { mBPoints = bPoints; }
-        public void setWPoints(int[] wPoints) { mWPoints = wPoints; }
     }
 }
