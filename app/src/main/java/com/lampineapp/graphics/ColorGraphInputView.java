@@ -60,10 +60,9 @@ public class ColorGraphInputView extends View {
     private float mBackgroundGradientLineWidth = 10;
     private int   mBackgroundGradientAlpha = 30;
 
-    // Tolerance must lead to worst case number of 100 data points, otherwise data set is to large
-    // for MCU
-    private static final float TOUCH_TOLERANCE = 32;
-    private static final int COLOR_TOLERANCE = 16;
+    // Tolerances
+    private static final float TOUCH_TOLERANCE = 4;
+    private static final int COLOR_TOLERANCE = 0;
 
     // TODO: IMPLEMENT PROPER CLASS
     private List<Integer> colors = new ArrayList<>();
@@ -150,20 +149,15 @@ public class ColorGraphInputView extends View {
         if (x < mX)
             return;
 
-        // Update color based on y position
-        final float angle = 360 * y / height;
-        int color = DataHelpers.angleToSpectrumColor(angle);
+        if (Math.abs(dX) >= TOUCH_TOLERANCE || Math.abs(dY) >= TOUCH_TOLERANCE) {
 
-        if (Math.abs(dX) >= TOUCH_TOLERANCE ||
-                Math.abs(dY) >= TOUCH_TOLERANCE ||
-                Math.abs(DataHelpers.getR(color) - DataHelpers.getR(mColor)) > COLOR_TOLERANCE ||
-                Math.abs(DataHelpers.getG(color) - DataHelpers.getG(mColor)) > COLOR_TOLERANCE ||
-                Math.abs(DataHelpers.getB(color) - DataHelpers.getB(mColor)) > COLOR_TOLERANCE) {
-
+            // Update color based on y position
+            final float angle = 360 * y / height;
+            int color = DataHelpers.angleToSpectrumColor(angle);
             mColor = color;
+            colors.add(color);
             mPaint.setColor(color);
             mPaint.setStrokeWidth(mGraphLineWidth);
-            colors.add(color);
 
             mPath.moveTo(mX, mY);
             mPath.lineTo(x, y);
