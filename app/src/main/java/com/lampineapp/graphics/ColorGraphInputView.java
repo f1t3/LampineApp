@@ -12,12 +12,16 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.provider.ContactsContract;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.constraintlayout.solver.widgets.Helper;
 
 import com.lampineapp.helper.DataHelpers;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ColorGraphInputView extends View {
 
@@ -30,17 +34,19 @@ public class ColorGraphInputView extends View {
     private Canvas  mCanvas;
     private Path    mPath;
     private Paint   mBitmapPaint;
-    Context context;
     private Paint circlePaint;
     private Path circlePath;
 
     private float mX, mY;
-    private float xCurrent;
+    private int mColor = 0;
 
-    private static final float TOUCH_TOLERANCE = 4;
+    // Tolerance must lead to worst case number of 100 datapoints, otherwise dataset is to large
+    // for MCU
+    private static final float TOUCH_TOLERANCE = 10;
+    private static final int COLOR_TOLERANCE = 16;
 
-    private int rValues, gValues, bValues;
-
+    // TODO: IMPLEMENT PROPER CLASS
+    private List<Integer> colors = new ArrayList<>();
 
     public ColorGraphInputView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -73,7 +79,6 @@ public class ColorGraphInputView extends View {
 
         mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
-        xCurrent = 0;
     }
 
     @Override
@@ -91,7 +96,7 @@ public class ColorGraphInputView extends View {
                 invalidate();
                 break;
             case MotionEvent.ACTION_UP:
-                onTouchUp();
+                onTouchUp(x, y);
                 invalidate();
                 break;
         }
@@ -105,36 +110,56 @@ public class ColorGraphInputView extends View {
         mPath.moveTo(x, y);
         mX = x;
         mY = y;
+        final float angle = 360 * y / height;
+        colors.clear();
+        int mColor = DataHelpers.angleToSpectrumColor(angle);
     }
 
     private void onTouchMove(float x, float y) {
+
+        final float dX = x - mX;
+        final float dY = y - mY;
         // Allow only forward movements in x direction
         if (x <= mX)
             return;
-        final float dx = Math.abs(x - mX);
-        final float dy = Math.abs(y - mY);
 
-        if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE) {
+        if (Math.abs(dX) >= TOUCH_TOLERANCE || Math.abs(dY) >= TOUCH_TOLERANCE) {
             // Update color based on y position
             final float angle = 360 * y / height;
             int color = DataHelpers.angleToSpectrumColor(angle);
-            mPaint.setColor(color);
-            mPath.quadTo(mX, mY, (x + mX) / 2, (y + mY) / 2);
-            mX = x;
-            mY = y;
+            if (Math.abs(DataHelpers.getColorR(color) - DataHelpers.getColorR(mColor)) > COLOR_TOLERANCE ||
+                    Math.abs(DataHelpers.getColorG(color) - DataHelpers.getColorG(mColor)) > COLOR_TOLERANCE ||
+                    Math.abs(DataHelpers.getColorB(color) - DataHelpers.getColorB(mColor)) > COLOR_TOLERANCE
+            ) {
+                mColor = color;
+                mPaint.setColor(color);
+                // TODO: USE LIST??
+                colors.add(color);
+                mPath.moveTo(mX, mY);
+                mPath.lineTo(x, y);
+                mX = x;
+                mY = y;
 
-            circlePath.reset();
-            circlePath.addCircle(mX, mY, 30, Path.Direction.CW);
+                // commit the path to our offscreen
+                mCanvas.drawPath(mPath, mPaint);
+                // kill this so we don't double draw
+                mPath.reset();
+
+                circlePath.reset();
+                circlePath.addCircle(mX, mY, 30, Path.Direction.CW);
+            }
         }
     }
 
-    private void onTouchUp() {
+    private void onTouchUp(float x, float y) {
+        mPath.moveTo(x, y);
         mPath.lineTo(mX, mY);
         circlePath.reset();
         // commit the path to our offscreen
         mCanvas.drawPath(mPath, mPaint);
         // kill this so we don't double draw
         mPath.reset();
+        Log.d(TAG, "Data Points: " + colors.size());
     }
 
     private void clearDrawing() {
