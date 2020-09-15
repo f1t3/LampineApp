@@ -10,13 +10,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.provider.ContactsContract;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-
-import androidx.constraintlayout.solver.widgets.Helper;
 
 import com.lampineapp.helper.DataHelpers;
 
@@ -34,15 +31,38 @@ public class ColorGraphInputView extends View {
     private Canvas  mCanvas;
     private Path    mPath;
     private Paint   mBitmapPaint;
-    private Paint circlePaint;
-    private Path circlePath;
+    private Paint mIndicatorPaint;
+    private Paint mFramePaint;
+    private Paint mIndicatorCirclePaint;
+    private Path mIndicatorPath;
+    private Path mFramePath;
+    private Path mIndicatorCirclePath;
 
     private float mX, mY;
     private int mColor = 0;
 
-    // Tolerance must lead to worst case number of 100 datapoints, otherwise dataset is to large
+    private boolean graphIsEmpty = true;
+
+    // Settable parameters graph
+    private float mGraphLineWidth = 10;
+
+    // Settable parameters frame
+    private float mFrameWidth = 5;
+    private int mFrameColor = Color.BLACK;
+
+    // Settable parameters indicator
+    private float mIndicatorLineWidth = 4;
+    private float mIndicatorCircleLineWidth = 40;
+    private float mIndicatorRadius = 20;
+    private int mIndicatorColor = Color.BLACK;
+
+    // Settable parameters background
+    private float mBackgroundGradientLineWidth = 10;
+    private int   mBackgroundGradientAlpha = 30;
+
+    // Tolerance must lead to worst case number of 100 data points, otherwise data set is to large
     // for MCU
-    private static final float TOUCH_TOLERANCE = 10;
+    private static final float TOUCH_TOLERANCE = 32;
     private static final int COLOR_TOLERANCE = 16;
 
     // TODO: IMPLEMENT PROPER CLASS
@@ -53,22 +73,25 @@ public class ColorGraphInputView extends View {
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
         mPaint.setDither(true);
-        mPaint.setColor(Color.GREEN);
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
-        mPaint.setStrokeWidth(12);
 
         mPath = new Path();
         mBitmapPaint = new Paint(Paint.DITHER_FLAG);
 
-        circlePaint = new Paint();
-        circlePath = new Path();
-        circlePaint.setAntiAlias(true);
-        circlePaint.setColor(Color.BLUE);
-        circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setStrokeJoin(Paint.Join.MITER);
-        circlePaint.setStrokeWidth(4f);
+        mFramePath = new Path();
+        mFramePaint = new Paint();
+        mFramePaint.setStyle(Paint.Style.STROKE);
+        mFramePaint.setStrokeWidth(mFrameWidth);
+        mFramePaint.setStrokeCap(Paint.Cap.ROUND);
+
+        mIndicatorPaint = new Paint();
+        mIndicatorCirclePaint = new Paint();
+        mIndicatorPath = new Path();
+        mIndicatorCirclePath = new Path();
+        mIndicatorPaint.setStyle(Paint.Style.STROKE);
+        mIndicatorPaint.setStrokeJoin(Paint.Join.MITER);
     }
 
     @Override
@@ -76,9 +99,10 @@ public class ColorGraphInputView extends View {
         super.onSizeChanged(w, h, oldw, oldh);
         width = w;
         height = h;
-
         mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
+        drawBackgroundGradient();
+        drawFrame(width, height);
     }
 
     @Override
@@ -107,59 +131,106 @@ public class ColorGraphInputView extends View {
         // Remove old line on new touchdown
         clearDrawing();
         mPath.reset();
-        mPath.moveTo(x, y);
-        mX = x;
-        mY = y;
-        final float angle = 360 * y / height;
+
+        mX = correctXToDrawingArea(x);
+        mY = correctYToDrawingArea(y);
+
         colors.clear();
-        int mColor = DataHelpers.angleToSpectrumColor(angle);
     }
 
     private void onTouchMove(float x, float y) {
 
+        // Correct x or y if on or outside frame
+        x = correctXToDrawingArea(x);
+        y = correctYToDrawingArea(y);
+
+        // Allow only forward movements in x direction
         final float dX = x - mX;
         final float dY = y - mY;
-        // Allow only forward movements in x direction
-        if (x <= mX)
+        if (x < mX)
             return;
 
-        if (Math.abs(dX) >= TOUCH_TOLERANCE || Math.abs(dY) >= TOUCH_TOLERANCE) {
-            // Update color based on y position
-            final float angle = 360 * y / height;
-            int color = DataHelpers.angleToSpectrumColor(angle);
-            if (Math.abs(DataHelpers.getColorR(color) - DataHelpers.getColorR(mColor)) > COLOR_TOLERANCE ||
-                    Math.abs(DataHelpers.getColorG(color) - DataHelpers.getColorG(mColor)) > COLOR_TOLERANCE ||
-                    Math.abs(DataHelpers.getColorB(color) - DataHelpers.getColorB(mColor)) > COLOR_TOLERANCE
-            ) {
-                mColor = color;
-                mPaint.setColor(color);
-                // TODO: USE LIST??
-                colors.add(color);
-                mPath.moveTo(mX, mY);
-                mPath.lineTo(x, y);
-                mX = x;
-                mY = y;
+        // Update color based on y position
+        final float angle = 360 * y / height;
+        int color = DataHelpers.angleToSpectrumColor(angle);
 
-                // commit the path to our offscreen
-                mCanvas.drawPath(mPath, mPaint);
-                // kill this so we don't double draw
-                mPath.reset();
+        if (Math.abs(dX) >= TOUCH_TOLERANCE ||
+                Math.abs(dY) >= TOUCH_TOLERANCE ||
+                Math.abs(DataHelpers.getR(color) - DataHelpers.getR(mColor)) > COLOR_TOLERANCE ||
+                Math.abs(DataHelpers.getG(color) - DataHelpers.getG(mColor)) > COLOR_TOLERANCE ||
+                Math.abs(DataHelpers.getB(color) - DataHelpers.getB(mColor)) > COLOR_TOLERANCE) {
 
-                circlePath.reset();
-                circlePath.addCircle(mX, mY, 30, Path.Direction.CW);
-            }
+            mColor = color;
+            mPaint.setColor(color);
+            mPaint.setStrokeWidth(mGraphLineWidth);
+            colors.add(color);
+
+            mPath.moveTo(mX, mY);
+            mPath.lineTo(x, y);
+            mX = x;
+            mY = y;
+
+            // Patch must be drawn directly for using different colors
+            mCanvas.drawPath(mPath, mPaint);
+            mPath.reset();
+
+            drawIndicator(x, y);
         }
     }
 
     private void onTouchUp(float x, float y) {
-        mPath.moveTo(x, y);
-        mPath.lineTo(mX, mY);
-        circlePath.reset();
-        // commit the path to our offscreen
-        mCanvas.drawPath(mPath, mPaint);
-        // kill this so we don't double draw
-        mPath.reset();
+        mIndicatorPath.reset();
+        mIndicatorCirclePath.reset();
+
+        mX = 0;
+        mY = 0;
         Log.d(TAG, "Data Points: " + colors.size());
+    }
+
+    private boolean isXLeftOfFrame(float x) {
+        if (x - mGraphLineWidth/2 < mFrameWidth/2)
+            return true;
+        else
+            return false;
+    }
+
+    private boolean isXRightOfFrame(float x) {
+        if (x + mGraphLineWidth/2 > width  - mFrameWidth/2)
+            return true;
+        else
+            return false;
+    }
+
+    private float correctXToDrawingArea(float x) {
+        // Correct x if on or outside frame
+        if (isXLeftOfFrame(x))
+            x = mGraphLineWidth/2 + mFrameWidth/2;
+        if (isXRightOfFrame(x))
+            x = width  - mGraphLineWidth/2 - mFrameWidth/2;
+        return x;
+    }
+
+    private boolean isYTopOfFrame(float y) {
+        if (y - mGraphLineWidth/2 < mFrameWidth/2)
+            return true;
+        else
+            return false;
+    }
+
+    private boolean isYBotOfFrame(float y) {
+        if (y + mGraphLineWidth/2 > height - mFrameWidth/2)
+            return true;
+        else
+            return false;
+    }
+
+    private float correctYToDrawingArea(float y) {
+        // Correct y if on or outside frame
+        if (isYTopOfFrame(y))
+            y = mGraphLineWidth/2 + mFrameWidth/2;
+        if (isYBotOfFrame(y))
+            y = height - mGraphLineWidth/2 - mFrameWidth/2;
+        return y;
     }
 
     private void clearDrawing() {
@@ -169,12 +240,64 @@ public class ColorGraphInputView extends View {
         setDrawingCacheEnabled(true);
     }
 
+    private void drawFrame(float width, float height) {
+        mFramePaint.setStrokeWidth(mFrameWidth);
+        mFramePaint.setColor(mFrameColor);
+
+        final float x0 = mFrameWidth/2;
+        final float x1 = width - mFrameWidth/2;
+        final float y0 =  mFrameWidth/2;
+        final float y1 = height - mFrameWidth/2;
+
+        mFramePath.reset();
+        mFramePath.moveTo(x0, y0);
+        mFramePath.lineTo(x1, y0);
+        mFramePath.lineTo(x1, y1);
+        mFramePath.lineTo(x0, y1);
+        mFramePath.lineTo(x0, y0);
+    }
+
+    private void drawBackgroundGradient() {
+        mPaint.setStrokeWidth(mBackgroundGradientLineWidth);
+        float y = mBackgroundGradientLineWidth/2;
+        for ( ; y < height; y += mBackgroundGradientLineWidth) {
+            int color = DataHelpers.angleToSpectrumColor(360 * y/height);
+            color = DataHelpers.setA(color, mBackgroundGradientAlpha);
+            mPaint.setColor(color);
+            mCanvas.drawLine(0, y, width, y, mPaint);
+        }
+        // Redraw last line with thicker stroke if necessary
+        if (y + mBackgroundGradientLineWidth/2 < height) {
+            mPaint.setStrokeWidth((height - y) * 2);
+            mCanvas.drawLine(0, y, width, y, mPaint);
+        }
+    }
+
+    private void drawIndicator(float x, float y) {
+        // Draw vertical and horizontal lines
+        mIndicatorPaint.setStrokeWidth(mIndicatorLineWidth);
+        mIndicatorPaint.setColor(mIndicatorColor);
+        mIndicatorPath.reset();
+        // Vertical
+        mIndicatorPath.moveTo(x, 0);
+        mIndicatorPath.lineTo(x, height);
+        // Horizontal
+        mIndicatorPath.moveTo(0, y);
+        mIndicatorPath.lineTo(width, y);
+
+        // Draw circle
+        mIndicatorCirclePaint.setStrokeWidth(mIndicatorCircleLineWidth);
+        mIndicatorCirclePaint.setColor(mIndicatorColor);
+        mIndicatorCirclePath.reset();
+        mIndicatorCirclePath.addCircle(x, y, mIndicatorRadius, Path.Direction.CW);
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
         canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
-        canvas.drawPath(mPath, mPaint);
-        canvas.drawPath(circlePath, circlePaint);
+        canvas.drawPath(mIndicatorPath, mIndicatorPaint);
+        canvas.drawPath(mIndicatorCirclePath, mIndicatorCirclePaint);
+        canvas.drawPath(mFramePath, mFramePaint);
     }
 }

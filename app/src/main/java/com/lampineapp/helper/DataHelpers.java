@@ -92,14 +92,18 @@ public class DataHelpers {
         return color;
     }
 
-    public static int getColorR(int color) {
+    public static int getR(int color) {
         return (color >> 16) & 0xff;
     }
-
-    public static int getColorG(int color) {
+    public static int getG(int color) {
         return (color >> 8) & 0xff;
     }
-    public static int getColorB(int color) {
+    public static int getB(int color) {
         return (color >> 0) & 0xff;
+    }
+    public static int setA(int color, int A) {
+        int ret = color & ~(0xFF << 24);
+        ret |= (A & 0xFF) << 24;
+        return ret;
     }
 }
