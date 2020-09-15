@@ -35,6 +35,11 @@ public class ColorGraphView extends View {
         float xSpace = this.getMeasuredWidth() / mX.length;
         // Draw each line segment
         for (int i = 0; i < mX.length-1; i++) {
+
+            // TODO: UGLY CORNERS:
+            // You probably don't want to lineTo(c, d) and then immediately moveTo(c, d) which is the same point. 
+            // If you do this, you won't get a nice corner join on the two line segments, 
+            // which may look like an ugly gap. !!!
             Path path = new Path();
             Paint mPaint = new Paint();
             mPaint.setStyle(Paint.Style.STROKE);
