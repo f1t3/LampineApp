@@ -28,8 +28,10 @@ import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 
-public class ActivityConnectToLamp extends AppCompatActivity {
+public class
+ActivityConnectToLamp extends AppCompatActivity {
 
+    final boolean LIST_ALL_BTLE_DEVICES = true;
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private ListView mListView;
     private BluetoothAdapter mBluetoothAdapter;
@@ -298,7 +300,7 @@ public class ActivityConnectToLamp extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (isValidLampineDevice(device)) {
+                            if (isValidLampineDevice(device) || LIST_ALL_BTLE_DEVICES) {
                                 mLeDeviceListAdapter.addDevice(device);
                                 mLeDeviceListAdapter.notifyDataSetChanged();
                             }
