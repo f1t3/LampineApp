@@ -71,7 +71,6 @@ public class DataHelpers {
     }
 
     public static int getSpectrumColorFromRelative(float a) {
-        Log.d(TAG, "Enter getSpectrumColorFromRelative()");
         if (a > 1) {
             // Get r in range
             a = (float)(a - Math.floor(a));
@@ -105,7 +104,6 @@ public class DataHelpers {
         final int G = (int) (255f * g);
         final int B = (int) (255f * b);
         final int color = (A & 0xff) << 24 | (R & 0xff) << 16 | (G & 0xff) << 8 | (B & 0xff);
-        Log.d(TAG, "Leave getSpectrumColorFromRelative()");
         return color;
     }
 
