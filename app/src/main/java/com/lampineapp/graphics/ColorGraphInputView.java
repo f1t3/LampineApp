@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
@@ -26,8 +27,8 @@ public class ColorGraphInputView extends View {
 
     enum State {
         S_EMPTY,
-        S_START_INDICATOR_MOVING,
-        S_STOP_INDICATOR_MOVING,
+        S_START_INDICATOR_CATCHED,
+        S_STOP_INDICATOR_CATCHED,
     }
     State mState;
 
@@ -53,6 +54,10 @@ public class ColorGraphInputView extends View {
     private Path mStartIndCirclePath;
     private Path mStopIndCirclePath;
 
+    // Start indicator
+    private Path mStartIndDrawerPath = new Path();
+    private Paint mStartIndDrawerPaint = new Paint();
+
 
     private float mX, mY;
     private float mYStartIndicator;
@@ -77,27 +82,31 @@ public class ColorGraphInputView extends View {
     private float mBackgroundGradientLineWidth = 10;
     private int   mBackgroundGradientAlpha = 30;
 
-    // Settable parameters start circle
-    private float mStartIndCircleWidth = 60;
-    private float mStartIndCircleRadius = 30;
+    // Settable parameters start indicator
+    private float mStartIndCircleWidth = 40;
+    private float mStartIndCircleRadius = 20;
     private int mStartIndCircleColor = Color.BLACK;
-    private float mStartIndCircleMoveCatchRadius = 100;
+    private float mStartIndMoveCatchRadius = 40;
     private int mStartIndTextColor = Color.WHITE;
     private float mStartIndTextSize = 30;
+    private float mStartIndDrawerW1 = 60;
+    private float mStartIndDrawerW2 = 30;
+    private float mStartIndDrawerH = 60;
+    private int mStartIndDrawerColor = Color.BLACK;
 
     // Settable parameters stop circle
-    private float mStopIndCircleWidth = 60;
-    private float mStopIndCircleRadius = 30;
+    private float mStopIndCircleWidth = 40;
+    private float mStopIndCircleRadius = 20;
     private int mStopIndCircleColor = Color.BLACK;
     private float mStopIndCircleMoveCatchRadius = 100;
     private int mStopIndTextColor = Color.WHITE;
     private float mStopIndTextSize = 30;
 
     // Padding
-    private float padT = 60;
-    private float padB = 60;
-    private float padL = 60;
-    private float padR = 60;
+    private float padT = 150;
+    private float padB = 150;
+    private float padL = 150;
+    private float padR = 150;
 
     // Tolerances
     private static final float TOUCH_TOLERANCE = 1;
@@ -132,6 +141,8 @@ public class ColorGraphInputView extends View {
         mStopIndCirclePath = new Path();
         mStopIndCirclePaint = new Paint();
         mStopIndTextPaint = new Paint();
+
+        mStartIndDrawerPaint.setStyle(Paint.Style.FILL);
 
         mState = State.S_EMPTY;
 
@@ -179,10 +190,10 @@ public class ColorGraphInputView extends View {
             case S_EMPTY:
                 // Cursor near start indicator?
                 if (isCursorInStartIndCatchArea(x, y))
-                    mState = State.S_START_INDICATOR_MOVING;
+                    mState = State.S_START_INDICATOR_CATCHED;
                 // Cursor near stop indicator?
                 if (isCursorInStopIndCatchArea(x, y))
-                    mState = State.S_STOP_INDICATOR_MOVING;
+                    mState = State.S_STOP_INDICATOR_CATCHED;
                 return;
 
         }
@@ -202,47 +213,55 @@ public class ColorGraphInputView extends View {
         x = correctXToDrawingArea(x);
         y = correctYToDrawingArea(y);
 
-        switch (mState) {
-            case S_START_INDICATOR_MOVING:
-                mYStartIndicator = y;
-                return;
-            case S_STOP_INDICATOR_MOVING:
-                mYStopIndicator = y;
-                return;
-        }
-
-        // Allow only forward movements in x direction
         final float dX = x - mX;
         final float dY = y - mY;
-        if (x < mX)
-            return;
 
-        if (Math.abs(dX) >= TOUCH_TOLERANCE || Math.abs(dY) >= TOUCH_TOLERANCE) {
-
-            // Update color based on y position
-            int color = DataHelpers.getSpectrumColorFromRelative(y/height);
-            colors.add(color);
-            mGraphPaint.setColor(color);
-            mGraphPaint.setStrokeWidth(mGraphLineWidth);
-
-            mGraphPath.moveTo(mX, mY);
-            mGraphPath.lineTo(x, y);
-            mX = x;
-            mY = y;
-
-            // Patch must be drawn directly for using different colors
-            mCanvas.drawPath(mGraphPath, mGraphPaint);
-            mGraphPath.reset();
-
-            drawIndicator(x, y);
+        switch (mState) {
+            case S_START_INDICATOR_CATCHED:
+                mYStartIndicator = y;
+                break;
+            case S_STOP_INDICATOR_CATCHED:
+                mYStopIndicator = y;
+                break;
         }
+
+        mY = y;
+        mX = x;
+
+        return;
+
+//        // Allow only forward movements in x direction
+//        final float dX = x - mX;
+//        final float dY = y - mY;
+//        if (x < mX)
+//            return;
+//
+//        if (Math.abs(dX) >= TOUCH_TOLERANCE || Math.abs(dY) >= TOUCH_TOLERANCE) {
+//
+//            // Update color based on y position
+//            int color = DataHelpers.getSpectrumColorFromRelative(y/height);
+//            colors.add(color);
+//            mGraphPaint.setColor(color);
+//            mGraphPaint.setStrokeWidth(mGraphLineWidth);
+//
+//            mGraphPath.moveTo(mX, mY);
+//            mGraphPath.lineTo(x, y);
+//            mX = x;
+//            mY = y;
+//
+//            // Patch must be drawn directly for using different colors
+//            mCanvas.drawPath(mGraphPath, mGraphPaint);
+//            mGraphPath.reset();
+//
+//            drawIndicator(x, y);
+//        }
     }
 
     private void onTouchUp(float x, float y) {
 
         switch (mState) {
-            case S_START_INDICATOR_MOVING:
-            case S_STOP_INDICATOR_MOVING:
+            case S_START_INDICATOR_CATCHED:
+            case S_STOP_INDICATOR_CATCHED:
                 mState = State.S_EMPTY;
                 return;
         }
@@ -280,17 +299,17 @@ public class ColorGraphInputView extends View {
 
     private void drawBackgroundGradient() {
         mGraphPaint.setStrokeWidth(mBackgroundGradientLineWidth);
-        float y = mBackgroundGradientLineWidth/2;
-        for ( ; y < height; y += mBackgroundGradientLineWidth) {
+        float y = mBackgroundGradientLineWidth/2 + padT;
+        for ( ; y < height - padB; y += mBackgroundGradientLineWidth) {
             int color = DataHelpers.getSpectrumColorFromRelative(y/height);
             color = DataHelpers.setA(color, mBackgroundGradientAlpha);
             mGraphPaint.setColor(color);
-            mCanvas.drawLine(0, y, width, y, mGraphPaint);
+            mCanvas.drawLine(0 + padL, y, width - padR, y, mGraphPaint);
         }
         // Redraw last line with thicker stroke if necessary
-        if (y + mBackgroundGradientLineWidth/2 < height) {
-            mGraphPaint.setStrokeWidth((height - y) * 2);
-            mCanvas.drawLine(0, y, width, y, mGraphPaint);
+        if (y + mBackgroundGradientLineWidth/2 < height - padB) {
+            mGraphPaint.setStrokeWidth((height - padB - y ) * 2);
+            mCanvas.drawLine(0 + padL, y,  width - padR, y, mGraphPaint);
         }
     }
 
@@ -314,16 +333,34 @@ public class ColorGraphInputView extends View {
     }
 
     private void drawStartIndicator(Canvas canvas) {
+
+        final float x0 = mXStartIndicator;
+        final float y0 = mYStartIndicator;
+
+        // Draw Drawer
+        mStartIndDrawerPath.reset();
+        CornerPathEffect corEffect = new CornerPathEffect(10);
+        mStartIndDrawerPaint.setPathEffect(corEffect);
+        mStartIndDrawerPaint.setStrokeWidth(2);
+        mStartIndDrawerPaint.setColor(mStartIndDrawerColor);
+        mStartIndDrawerPath.moveTo(x0, y0);
+        mStartIndDrawerPath.rLineTo(-mStartIndDrawerW2, -mStartIndDrawerH/2);
+        mStartIndDrawerPath.rLineTo(-mStartIndDrawerW1,  +0);
+        mStartIndDrawerPath.rLineTo(+0, +mStartIndDrawerH);
+        mStartIndDrawerPath.rLineTo(+mStartIndDrawerW1, 0);
+        mStartIndDrawerPath.rLineTo(mStartIndDrawerW2, -mStartIndDrawerH/2);
+        canvas.drawPath(mStartIndDrawerPath, mStartIndDrawerPaint);
+
         // Draw circle
         mStartIndCirclePath.reset();
         mStartIndCirclePaint.setStrokeWidth(mStartIndCircleWidth);
         mStartIndCirclePaint.setColor(mStartIndCircleColor);
         mStartIndCirclePath.addCircle(
                 mXStartIndicator, mYStartIndicator , mStartIndCircleRadius, Path.Direction.CW);
-        mStartIndTextPaint.setTextSize(mStartIndTextSize);
         canvas.drawPath(mStartIndCirclePath, mStartIndCirclePaint);
 
         // Draw text
+        mStartIndTextPaint.setTextSize(mStartIndTextSize);
         mStartIndTextPaint.setColor(mStartIndTextColor);
         Rect textBounds = new Rect();
         mStartIndTextPaint.getTextBounds("1", 0, 1, textBounds);
@@ -408,13 +445,24 @@ public class ColorGraphInputView extends View {
     }
 
     private boolean isCursorInStartIndCatchArea(float x, float y) {
-        final float dX = x - mXStartIndicator;
-        final float dY = y - mYStartIndicator;
-        return (Math.sqrt(dX*dX + dY*dY) <= mStartIndCircleMoveCatchRadius);
+//        final float dX = x - (mXStartIndicator - mStartIndDrawerW2 - mStartIndDrawerW1/2);
+//        final float dY = y - mYStartIndicator;
+//        return (Math.sqrt(dX*dX + dY*dY) <= mStartIndMoveCatchRadius);
+
+        if (y >= mYStartIndicator - mStartIndDrawerH/2 &&
+                y <= mYStartIndicator + mStartIndDrawerH/2 &&
+                x >= mXStartIndicator - mStartIndDrawerW2 - mStartIndDrawerW1 &&
+                x <= mXStartIndicator - mStartIndDrawerW2 - mStartIndDrawerW1/2) {
+            return true;
+        } else {
+            return false;
+        }
+
+
     }
 
     private boolean isCursorInStopIndCatchArea(float x, float y) {
-        final float dX = x - mXStopIndicator;
+        final float dX = x - (mXStopIndicator);
         final float dY = y - mYStopIndicator;
         return (Math.sqrt(dX*dX + dY*dY) <= mStopIndCircleMoveCatchRadius);
     }
