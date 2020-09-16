@@ -27,6 +27,7 @@ public class ColorGraphInputView extends View {
     enum State {
         S_EMPTY,
         S_START_INDICATOR_MOVING,
+        S_STOP_INDICATOR_MOVING,
     }
     State mState;
 
@@ -35,6 +36,8 @@ public class ColorGraphInputView extends View {
     public  int height;
     private Bitmap mBitmap;
     private Canvas  mCanvas;
+
+    // TODO: INIT PAINTS AND PATHS HERE; NOT IN CONSTRUCTOR!!!
     private Path mGraphPath;
     private Paint   mBitmapPaint;
     private Paint mIndicatorPaint;
@@ -42,18 +45,20 @@ public class ColorGraphInputView extends View {
     private Paint mIndicatorCirclePaint;
     private Paint mStartIndCirclePaint;
     private Paint mStartIndTextPaint;
+    private Paint mStopIndCirclePaint;
+    private Paint mStopIndTextPaint;
     private Path mIndicatorPath;
     private Path mIndicatorCirclePath;
     private Path mFramePath;
     private Path mStartIndCirclePath;
-    private Path mStartIndTextPath;
+    private Path mStopIndCirclePath;
 
 
     private float mX, mY;
     private float mYStartIndicator;
     private float mXStartIndicator;
-
-    private boolean graphIsEmpty = true;
+    private float mYStopIndicator;
+    private float mXStopIndicator;
 
     // Settable parameters graph
     private float mGraphLineWidth = 10;
@@ -76,9 +81,17 @@ public class ColorGraphInputView extends View {
     private float mStartIndCircleWidth = 60;
     private float mStartIndCircleRadius = 30;
     private int mStartIndCircleColor = Color.BLACK;
-    private float mStartIndCircleMoveCatchRadius = 250;
+    private float mStartIndCircleMoveCatchRadius = 100;
     private int mStartIndTextColor = Color.WHITE;
     private float mStartIndTextSize = 30;
+
+    // Settable parameters stop circle
+    private float mStopIndCircleWidth = 60;
+    private float mStopIndCircleRadius = 30;
+    private int mStopIndCircleColor = Color.BLACK;
+    private float mStopIndCircleMoveCatchRadius = 100;
+    private int mStopIndTextColor = Color.WHITE;
+    private float mStopIndTextSize = 30;
 
     // Padding
     private float padT = 60;
@@ -112,10 +125,13 @@ public class ColorGraphInputView extends View {
         mIndicatorCirclePaint.setStyle(Paint.Style.STROKE);
         mIndicatorCirclePath = new Path();
 
-        mStartIndCirclePaint = new Paint();
         mStartIndCirclePath = new Path();
+        mStartIndCirclePaint = new Paint();
         mStartIndTextPaint = new Paint();
-        mStartIndTextPath = new Path();
+
+        mStopIndCirclePath = new Path();
+        mStopIndCirclePaint = new Paint();
+        mStopIndTextPaint = new Paint();
 
         mState = State.S_EMPTY;
 
@@ -132,7 +148,8 @@ public class ColorGraphInputView extends View {
         drawFrame();
         mYStartIndicator = height / 2;
         mXStartIndicator = mFrameWidth/2 + padL;
-        drawStartIndicator();
+        mYStopIndicator = height / 2;
+        mXStopIndicator = width - padR - mFrameWidth/2;
     }
 
     @Override
@@ -157,6 +174,19 @@ public class ColorGraphInputView extends View {
     }
 
     private void onTouchDown(float x, float y) {
+
+        switch (mState) {
+            case S_EMPTY:
+                // Cursor near start indicator?
+                if (isCursorInStartIndCatchArea(x, y))
+                    mState = State.S_START_INDICATOR_MOVING;
+                // Cursor near stop indicator?
+                if (isCursorInStopIndCatchArea(x, y))
+                    mState = State.S_STOP_INDICATOR_MOVING;
+                return;
+
+        }
+
         // Remove old line on new touchdown
         clearDrawing();
         mGraphPath.reset();
@@ -165,15 +195,6 @@ public class ColorGraphInputView extends View {
         mY = correctYToDrawingArea(y);
 
         colors.clear();
-
-        // Allow moving of start indicator
-        if (mState == State.S_EMPTY) {
-            final float dX = x - mXStartIndicator;
-            final float dY = y - mYStartIndicator;
-            if (Math.sqrt(dX*dX + dY*dY) <= mStartIndCircleMoveCatchRadius) {
-                mState = State.S_START_INDICATOR_MOVING;
-            }
-        }
     }
 
     private void onTouchMove(float x, float y) {
@@ -181,10 +202,13 @@ public class ColorGraphInputView extends View {
         x = correctXToDrawingArea(x);
         y = correctYToDrawingArea(y);
 
-        if (mState == State.S_START_INDICATOR_MOVING) {
-            mYStartIndicator = y;
-            drawStartIndicator();
-            return;
+        switch (mState) {
+            case S_START_INDICATOR_MOVING:
+                mYStartIndicator = y;
+                return;
+            case S_STOP_INDICATOR_MOVING:
+                mYStopIndicator = y;
+                return;
         }
 
         // Allow only forward movements in x direction
@@ -215,6 +239,14 @@ public class ColorGraphInputView extends View {
     }
 
     private void onTouchUp(float x, float y) {
+
+        switch (mState) {
+            case S_START_INDICATOR_MOVING:
+            case S_STOP_INDICATOR_MOVING:
+                mState = State.S_EMPTY;
+                return;
+        }
+
         mIndicatorPath.reset();
         mIndicatorCirclePath.reset();
 
@@ -281,16 +313,42 @@ public class ColorGraphInputView extends View {
         mIndicatorCirclePath.addCircle(x, y, mIndicatorRadius, Path.Direction.CW);
     }
 
-    private void drawStartIndicator() {
+    private void drawStartIndicator(Canvas canvas) {
+        // Draw circle
         mStartIndCirclePath.reset();
-        mStartIndTextPath.reset();
         mStartIndCirclePaint.setStrokeWidth(mStartIndCircleWidth);
         mStartIndCirclePaint.setColor(mStartIndCircleColor);
         mStartIndCirclePath.addCircle(
                 mXStartIndicator, mYStartIndicator , mStartIndCircleRadius, Path.Direction.CW);
         mStartIndTextPaint.setTextSize(mStartIndTextSize);
+        canvas.drawPath(mStartIndCirclePath, mStartIndCirclePaint);
+
+        // Draw text
         mStartIndTextPaint.setColor(mStartIndTextColor);
+        Rect textBounds = new Rect();
+        mStartIndTextPaint.getTextBounds("1", 0, 1, textBounds);
+        canvas.drawText("1", mXStartIndicator-textBounds.width(),
+                mYStartIndicator+textBounds.height()/2, mStartIndTextPaint);
     }
+
+    private void drawStopIndicator(Canvas canvas) {
+        // Draw circle
+        mStopIndCirclePath.reset();
+        mStopIndCirclePaint.setStrokeWidth(mStopIndCircleWidth);
+        mStopIndCirclePaint.setColor(mStopIndCircleColor);
+        mStopIndCirclePath.addCircle(
+                mXStopIndicator, mYStopIndicator , mStopIndCircleRadius, Path.Direction.CW);
+        mStopIndTextPaint.setTextSize(mStopIndTextSize);
+        canvas.drawPath(mStopIndCirclePath, mStopIndCirclePaint);
+
+        // Draw text
+        mStopIndTextPaint.setColor(mStopIndTextColor);
+        Rect textBounds = new Rect();
+        mStopIndTextPaint.getTextBounds("2", 0, 1, textBounds);
+        canvas.drawText("2", mXStopIndicator-textBounds.width()/2,
+                mYStopIndicator+textBounds.height()/2, mStopIndTextPaint);
+    }
+
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -299,15 +357,8 @@ public class ColorGraphInputView extends View {
         canvas.drawPath(mIndicatorPath, mIndicatorPaint);
         canvas.drawPath(mIndicatorCirclePath, mIndicatorCirclePaint);
         canvas.drawPath(mFramePath, mFramePaint);
-        canvas.drawPath(mStartIndCirclePath, mStartIndCirclePaint);
-        Rect textBounds = new Rect();
-        char text[] = {'1'};
-        mStartIndTextPaint.getTextBounds(text, 0, 1, textBounds);
-        canvas.drawText("1",
-                mXStartIndicator-textBounds.width(),
-                mYStartIndicator+textBounds.height()/2,
-                 mStartIndTextPaint);
-
+        drawStartIndicator(canvas);
+        drawStopIndicator(canvas);
     }
 
     private boolean isXLeftOfFrame(float x) {
@@ -354,5 +405,17 @@ public class ColorGraphInputView extends View {
         if (isYBotOfFrame(y))
             y = height - mGraphLineWidth/2 - mFrameWidth/2 - padB;
         return y;
+    }
+
+    private boolean isCursorInStartIndCatchArea(float x, float y) {
+        final float dX = x - mXStartIndicator;
+        final float dY = y - mYStartIndicator;
+        return (Math.sqrt(dX*dX + dY*dY) <= mStartIndCircleMoveCatchRadius);
+    }
+
+    private boolean isCursorInStopIndCatchArea(float x, float y) {
+        final float dX = x - mXStopIndicator;
+        final float dY = y - mYStopIndicator;
+        return (Math.sqrt(dX*dX + dY*dY) <= mStopIndCircleMoveCatchRadius);
     }
 }
