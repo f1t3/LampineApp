@@ -1,9 +1,15 @@
 package com.lampineapp.helper;
 
+import android.util.Log;
+
+import com.lampineapp.graphics.ColorGraphInputView;
+
 import static java.lang.Math.abs;
 import static java.lang.Math.floor;
 
 public class DataHelpers {
+
+    private final static String TAG = ColorGraphInputView.class.getSimpleName();
 
     public static int[] parseStringArrayToIntArray(String[] stringArray) {
         int[] ret = new int[stringArray.length];
@@ -59,36 +65,47 @@ public class DataHelpers {
         return ret;
     }
 
-    public static int angleToSpectrumColor(float angle_deg) {
-        final float a = angle_deg;
+    public static int getSpectrumColorFromAngle(float angle_deg) {
+        final float r = angle_deg / 360;
+        return getSpectrumColorFromRelative(r);
+    }
+
+    public static int getSpectrumColorFromRelative(float a) {
+        Log.d(TAG, "Enter getSpectrumColorFromRelative()");
+        if (a > 1) {
+            // Get r in range
+            a = (float)(a - Math.floor(a));
+        }
+
         // Calculate RGB values scaled from 0 to 1 as linear spectrum
-        float r = 0, g = 0, b = 0;
-        if (a < 0) {
+        float r = 0f, g = 0f, b = 0f;
+        if (a < 0f) {
             // Dummy
-        } else if (a >= 0 && a < 60) {
-            r = 1;
-            g = a / 60;
-        } else if (a >= 60 && a < 120) {
-            r = 1 - (a - 60) / 60;
-            g = 1;
-        } else if (a >= 120 && a < 180) {
-            g = 1;
-            b = (a - 120) / 60;
-        } else if (a >= 180 && a < 240) {
-            g = 1 - (a - 180) / 60;
-            b = 1;
-        } else if (a >= 240 && a < 300) {
-            r = (a - 240) / 60;
-            b = 1;
-        } else if (a >= 300 && a <= 360) {
-            r = 1;
-            b = 1 - (a - 300) / 60;
+        } else if (a >= 0f/6f && a < 1f/6f) {
+            r = 1f;
+            g = a * 6f;
+        } else if (a >= 1f/6f && a < 2f/6f) {
+            r = 1f - (a - 1f/6f) * 6f;
+            g = 1f;
+        } else if (a >= 2f/6f && a < 3f/6f) {
+            g = 1f;
+            b = (a - 2f/6f) * 6f;
+        } else if (a >= 3f/6f && a < 4f/6f) {
+            g = 1f - (a - 3f/6f) * 6f;
+            b = 1f;
+        } else if (a >= 4f/6f && a < 5f/6f) {
+            r = (a - 4f/6f) * 6f;
+            b = 1f;
+        } else if (a >= 5f/6f && a <= 6f/6f) {
+            r = 1f;
+            b = 1f - (a - 5f/6f) * 6f;
         }
         final int A = 255;
-        final int R = (int) (255 * r);
-        final int G = (int) (255 * g);
-        final int B = (int) (255 * b);
+        final int R = (int) (255f * r);
+        final int G = (int) (255f * g);
+        final int B = (int) (255f * b);
         final int color = (A & 0xff) << 24 | (R & 0xff) << 16 | (G & 0xff) << 8 | (B & 0xff);
+        Log.d(TAG, "Leave getSpectrumColorFromRelative()");
         return color;
     }
 
