@@ -15,13 +15,20 @@ import android.graphics.Rect;
 import android.provider.ContactsContract;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.core.view.GestureDetectorCompat;
 
 import com.lampineapp.helper.DataHelpers;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+
+import static android.view.ViewConfiguration.getLongPressTimeout;
 
 public class ColorGraphInputView extends View {
 
@@ -34,6 +41,9 @@ public class ColorGraphInputView extends View {
         S_START_DRAW_GRAPH,
     }
     State mState;
+
+    private GestureDetectorCompat mGestureDetector;
+    private GestureListener mGestureListener;
 
     private Paint mBackgroundGradientPaint = new Paint();
 
@@ -73,6 +83,9 @@ public class ColorGraphInputView extends View {
     private float mYStopIndicator;
     private float mXStopIndicator;
 
+    // Long press detection
+    private boolean mLongPressDetected = false;
+
     // Settable parameters graph
     private float mGraphLineWidth = 10;
 
@@ -91,7 +104,7 @@ public class ColorGraphInputView extends View {
     private int   mBackgroundGradientAlpha = 50;
 
     // Settable parameters start indicator
-    private float mStartIndDrawCatchRadius = 24;
+    private float mStartIndDrawCatchRadius = 50;
     private float mStartIndCircleWidth = 50;
     private float mStartIndCircleRadius = 25;
     private int mStartIndCircleColor = Color.BLACK;
@@ -131,6 +144,9 @@ public class ColorGraphInputView extends View {
     public ColorGraphInputView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
+        mGestureListener = new GestureListener(this);
+        mGestureDetector = new GestureDetectorCompat(context, mGestureListener);
+
         mGraphPaint = new Paint();
         mGraphPaint.setStyle(Paint.Style.STROKE);
         mGraphPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -166,6 +182,35 @@ public class ColorGraphInputView extends View {
 
     }
 
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+        ColorGraphInputView v;
+
+        public GestureListener(ColorGraphInputView v) {
+            super();
+            this.v = v;
+        }
+
+
+        @Override
+        public void onLongPress(MotionEvent e) {
+            super.onLongPress(e);
+
+            // Long press on start indicator
+            if (isCursorInStartIndDrawCatchArea(e.getX(), e.getY())) {
+                mState = State.S_START_INDICATOR_CATCHED;
+                Log.d(TAG, "Long press detected!");
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            }
+        }
+
+        // TODO: Handle touch events here????
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -185,6 +230,10 @@ public class ColorGraphInputView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
+
+        // Detect long presses
+        mGestureDetector.onTouchEvent(event);
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 onTouchDown(x, y);
@@ -198,6 +247,10 @@ public class ColorGraphInputView extends View {
                 onTouchUp(x, y);
                 invalidate();
                 break;
+        }
+        if (mLongPressDetected == true) {
+            Log.d(TAG, "LongPressDetected!");
+            mLongPressDetected = false;
         }
         return true;
     }
@@ -338,9 +391,9 @@ public class ColorGraphInputView extends View {
             mCanvas.drawLine(0 + padL + mFrameWidth/2,
                     y, width - padR - mFrameWidth/2, y, mBackgroundGradientPaint);
 
-            Log.d(TAG, DataHelpers.getR(color) + " "
-                    + DataHelpers.getG(color) + " "
-                    + DataHelpers.getB(color));
+            //Log.d(TAG, DataHelpers.getR(color) + " "
+             //       + DataHelpers.getG(color) + " "
+               //     + DataHelpers.getB(color));
         }
 
         // Redraw last line at y position wich fills rest of frame
@@ -372,19 +425,19 @@ public class ColorGraphInputView extends View {
         final float x0 = mXStartIndicator;
         final float y0 = mYStartIndicator;
 
-        // Draw Drawer
-        mStartIndDrawerPath.reset();
-        CornerPathEffect corEffect = new CornerPathEffect(10);
-        mStartIndDrawerPaint.setPathEffect(corEffect);
-        mStartIndDrawerPaint.setStrokeWidth(2);
-        mStartIndDrawerPaint.setColor(mStartIndDrawerColor);
-        mStartIndDrawerPath.moveTo(x0, y0);
-        mStartIndDrawerPath.rLineTo(-mStartIndDrawerW2, -mStartIndDrawerH/2);
-        mStartIndDrawerPath.rLineTo(-mStartIndDrawerW1,  +0);
-        mStartIndDrawerPath.rLineTo(+0, +mStartIndDrawerH);
-        mStartIndDrawerPath.rLineTo(+mStartIndDrawerW1, 0);
-        mStartIndDrawerPath.rLineTo(mStartIndDrawerW2, -mStartIndDrawerH/2);
-        canvas.drawPath(mStartIndDrawerPath, mStartIndDrawerPaint);
+//        // Draw Drawer
+//        mStartIndDrawerPath.reset();
+//        CornerPathEffect corEffect = new CornerPathEffect(10);
+//        mStartIndDrawerPaint.setPathEffect(corEffect);
+//        mStartIndDrawerPaint.setStrokeWidth(2);
+//        mStartIndDrawerPaint.setColor(mStartIndDrawerColor);
+//        mStartIndDrawerPath.moveTo(x0, y0);
+//        mStartIndDrawerPath.rLineTo(-mStartIndDrawerW2, -mStartIndDrawerH/2);
+//        mStartIndDrawerPath.rLineTo(-mStartIndDrawerW1,  +0);
+//        mStartIndDrawerPath.rLineTo(+0, +mStartIndDrawerH);
+//        mStartIndDrawerPath.rLineTo(+mStartIndDrawerW1, 0);
+//        mStartIndDrawerPath.rLineTo(mStartIndDrawerW2, -mStartIndDrawerH/2);
+//        canvas.drawPath(mStartIndDrawerPath, mStartIndDrawerPaint);
 
         // Draw circle
         mStartIndCirclePath.reset();
@@ -507,12 +560,12 @@ public class ColorGraphInputView extends View {
     }
 
     private boolean isCursorInStartIndCatchArea(float x, float y) {
-        if (y >= mYStartIndicator - mStartIndDrawerH/2 - mStartIndDrawerCatchMargin &&
-                y <= mYStartIndicator + mStartIndDrawerH/2 + mStartIndDrawerCatchMargin &&
-                x >= mXStartIndicator - mStartIndDrawerW2
-                        - mStartIndDrawerW1 - mStartIndDrawerCatchMargin &&
-                x <= mXStartIndicator - mStartIndDrawerW2)
-            return true;
+//        if (y >= mYStartIndicator - mStartIndDrawerH/2 - mStartIndDrawerCatchMargin &&
+//                y <= mYStartIndicator + mStartIndDrawerH/2 + mStartIndDrawerCatchMargin &&
+//                x >= mXStartIndicator - mStartIndDrawerW2
+//                        - mStartIndDrawerW1 - mStartIndDrawerCatchMargin &&
+//                x <= mXStartIndicator - mStartIndDrawerW2)
+//            return true;
         return false;
     }
 
