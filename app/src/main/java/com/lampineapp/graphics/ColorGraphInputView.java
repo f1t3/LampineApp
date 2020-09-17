@@ -324,6 +324,7 @@ public class ColorGraphInputView extends View {
 
     private void clearDrawing() {
         setDrawingCacheEnabled(false);
+        // Bitmap needed for graph
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
         drawBackgroundGradient();
