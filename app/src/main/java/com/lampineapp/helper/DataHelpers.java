@@ -71,10 +71,10 @@ public class DataHelpers {
     }
 
     public static int getSpectrumColorFromRelative(float a) {
-        if (a > 1) {
-            // Get r in range
-            a = (float)(a - Math.floor(a));
-        }
+        while (a > 1)
+            a -= 1;
+        while  (a < 0)
+            a += 1;
 
         // Calculate RGB values scaled from 0 to 1 as linear spectrum
         float r = 0f, g = 0f, b = 0f;

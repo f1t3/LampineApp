@@ -8,11 +8,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.provider.ContactsContract;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -25,25 +23,25 @@ import androidx.core.view.GestureDetectorCompat;
 import com.lampineapp.helper.DataHelpers;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-
-import static android.view.ViewConfiguration.getLongPressTimeout;
 
 public class ColorGraphInputView extends View {
 
     private final static String TAG = ColorGraphInputView.class.getSimpleName();
 
     enum State {
-        S_EMPTY,
+        S_GRAPH_EMPTY,
+        S_CURSOR_ON_START_IND,
         S_START_INDICATOR_CATCHED,
         S_STOP_INDICATOR_CATCHED,
-        S_START_DRAW_GRAPH,
+        S_GRAPH_DRAWING,
+        S_GRAPH_COMPLETE
     }
     State mState;
 
     private GestureDetectorCompat mGestureDetector;
     private GestureListener mGestureListener;
+
 
     private Paint mBackgroundGradientPaint = new Paint();
 
@@ -53,39 +51,40 @@ public class ColorGraphInputView extends View {
     private Bitmap mBitmap;
     private Canvas  mCanvas;
 
-    // TODO: INIT PAINTS AND PATHS HERE; NOT IN CONSTRUCTOR!!!
-    private Path mGraphPath;
-    private Paint mFramePaint;
-    private Paint mIndicatorCirclePaint;
-    private Path mFramePath;
+    // Frame
+    private Paint mFramePaint = new Paint();
+    private Path mFramePath = new Path();
 
+    // Graph
+    private Path mGraphPath = new Path();
+    // Background
+    private Paint mBitmapPaint = new Paint();
     // Position indicator
-    private Paint mIndicatorPaint;
-    private Path mIndicatorPath;
-    private Path mIndicatorCirclePath;
+    private Paint mPosIndPaint = new Paint();
+    private Path mPosIndPath = new Path();
+    private Paint mPosIndCircPaint = new Paint() ;
+    private Path mPosIndCircPath = new Path();
     // Start indicator
     private Paint mStartIndCirclePaint = new Paint();
     private Paint mStartIndTextPaint = new Paint();
     private Path mStartIndCirclePath = new Path();
-
     // Stop indicator
     private Paint mStopIndCirclePaint = new Paint();
     private Paint mStopIndTextPaint = new Paint();
     private Path mStopIndCirclePath = new Path();
-
+    // Indicator match line
+    private Paint mIndMatchLinePaint = new Paint();
+    private Path mIndMatchLinePath = new Path();
 
     // Working variables
     private float mX, mY;
-    private float mYStartIndicator;
-    private float mXStartIndicator;
-    private float mYStopIndicator;
-    private float mXStopIndicator;
-
-    // Long press detection
-    private boolean mLongPressDetected = false;
+    private float mXPosInd, mYPosInd;
+    private float mYStartInd, mXStartInd;
+    private float mYStopInd, mXStopInd;
+    private float colorOffset = 0;
 
     // Settable parameters graph
-    private float mGraphLineWidth = 10;
+    private float mGraphLineWidth = 18;
 
     // Settable parameters frame
     private float mFrameWidth = 5;
@@ -98,32 +97,31 @@ public class ColorGraphInputView extends View {
     private int mIndicatorColor = Color.BLACK;
 
     // Settable parameters background
-    private float mBackgroundGradientLineWidth = 4;
+    private float mBackgroundGradientLineWidth = 10;
     private int   mBackgroundGradientAlpha = 50;
 
     // Settable parameters start indicator
-    private float mStartIndDrawCatchRadius = 50;
-    private float mStartIndCircleRadius = 25;
+    private float mStartIndCatchRadius = 40;
+    private float mStartIndRadius = 30;
     private int mStartIndCircleColor = Color.BLACK;
     private int mStartIndTextColor = Color.WHITE;
-    private float mStartIndTextSize = 30;
+    private float mStartIndTextSize = 40;
 
     // Settable parameters stop indicator
-    private float mStopIndDrawCatchRadius = 50;
-    private float mStopIndCircleRadius = 20;
+    private float mStopIndCatchRadius = 40;
+    private float mStopIndRadius = 30;
     private int mStopIndCircleColor = Color.BLACK;
     private int mStopIndTextColor = Color.WHITE;
-    private float mStopIndTextSize = 30;
+    private float mStopIndTextSize = 40;
 
     // Padding
-    private float padT = 150;
-    private float padB = 150;
-    private float padL = 150;
-    private float padR = 150;
+    private float padT = 50;
+    private float padB = 50;
+    private float padL = 50;
+    private float padR = 50;
 
     // Tolerances
-    private static final float TOUCH_TOLERANCE = 1;
-    private static final int COLOR_TOLERANCE = 0;
+    private static final float TOUCH_TOLERANCE = 6;
 
     // TODO: IMPLEMENT PROPER CLASS
     private List<Integer> colors = new ArrayList<>();
@@ -139,30 +137,23 @@ public class ColorGraphInputView extends View {
         mGraphPaint.setStrokeCap(Paint.Cap.ROUND);
         mGraphPath = new Path();
 
-        mFramePaint = new Paint();
+        // Frame
         mFramePaint.setStyle(Paint.Style.STROKE);
         mFramePaint.setStrokeCap(Paint.Cap.ROUND);
-        mFramePath = new Path();
 
-        mIndicatorPaint = new Paint();
-        mIndicatorPaint.setStyle(Paint.Style.STROKE);
-        mIndicatorPath = new Path();
-        mIndicatorCirclePaint = new Paint();
-        mIndicatorCirclePaint.setStyle(Paint.Style.STROKE);
-        mIndicatorCirclePath = new Path();
-
+        // Position indicator
+        mPosIndPaint.setStyle(Paint.Style.STROKE);
+        mPosIndCircPaint.setStyle(Paint.Style.FILL);
 
         // Start indicator initialization
         mStartIndCirclePaint.setStyle(Paint.Style.FILL);
         mStartIndCirclePaint.setStrokeWidth(1);
 
-        // Stop indicator intialization
+        // Stop indicator initialization
         mStopIndCirclePaint.setStyle(Paint.Style.FILL);
         mStopIndCirclePaint.setStrokeWidth(1);
 
-
-        mState = State.S_EMPTY;
-
+        mState = State.S_GRAPH_EMPTY;
     }
 
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -173,17 +164,37 @@ public class ColorGraphInputView extends View {
             this.v = v;
         }
 
-
         @Override
         public void onLongPress(MotionEvent e) {
             super.onLongPress(e);
 
+            final float x0 = e.getX();
+            final float y0 = e.getY();
             // Long press on start indicator
-            if (isCursorInsideRadius(e.getX(), e.getY())) {
+            if (isCursorInsideRadius
+                    (x0, y0, mXStartInd, mYStartInd, mStartIndCatchRadius)) {
                 mState = State.S_START_INDICATOR_CATCHED;
-                Log.d(TAG, "Long press detected!");
                 v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             }
+            // Long press on start indicator
+            if (isCursorInsideRadius
+                    (x0, y0, mXStopInd, mYStopInd, mStopIndCatchRadius)) {
+                mState = State.S_STOP_INDICATOR_CATCHED;
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            }
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float dX, float dY) {
+            final float x0 = getX();
+            final float y0 = getY();
+
+            if (isCursorInsideRadius(x0, y0, width/2, height/2, height) &&
+                    mState == State.S_GRAPH_EMPTY) {
+                clearDrawing();
+                colorOffset += dY;
+            }
+            return true;
         }
     }
 
@@ -195,18 +206,17 @@ public class ColorGraphInputView extends View {
         mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
         drawBackgroundGradient();
-        drawFrame();
-        mYStartIndicator = height / 2;
-        mXStartIndicator = mFrameWidth/2 + padL;
-        mYStopIndicator = height / 2;
-        mXStopIndicator = width - padR - mFrameWidth/2;
+        mYStartInd = height / 2;
+        mXStartInd = mFrameWidth/2 + padL;
+        mYStopInd = height / 2;
+        mXStopInd = width - padR - mFrameWidth/2;
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
-
+        
         // Detect long presses
         mGestureDetector.onTouchEvent(event);
 
@@ -224,68 +234,51 @@ public class ColorGraphInputView extends View {
                 invalidate();
                 break;
         }
-        if (mLongPressDetected == true) {
-            Log.d(TAG, "LongPressDetected!");
-            mLongPressDetected = false;
-        }
         return true;
     }
 
     private void onTouchDown(float x, float y) {
-
-        switch (mState) {
-            case S_EMPTY:
-                // Start indicator move catch?
-                if (isCursorInStartIndCatchArea(x, y)) {
-                    mState = State.S_START_INDICATOR_CATCHED;
-                    clearDrawing();
-                }
-                // Stop indicator move match?
-                if (isCursorInStopIndCatchArea(x, y)) {
-                    mState = State.S_STOP_INDICATOR_CATCHED;
-                    clearDrawing();
-                }
-                // Start indicator draw catch?
-                if (isCursorInsideRadius(x, y)) {
-                    mState = State.S_START_DRAW_GRAPH;
-                    clearDrawing();
-                }
-
+        // Cursor on start indicator
+        if (isCursorInsideRadius(x, y, mXStartInd, mYStartInd, mStartIndCatchRadius)) {
+            mState = State.S_CURSOR_ON_START_IND;
+            mX = correctXToDrawingArea(x);
+            mY = correctXToDrawingArea(y);
         }
-        mX = correctXToDrawingArea(x);
-        mY = correctYToDrawingArea(y);
-        return;
 
-        // Remove old line on new touchdown
-
-//        mGraphPath.reset();
-//        colors.clear();
     }
 
     private void onTouchMove(float x, float y) {
         // Correct x or y if on or outside frame
         x = correctXToDrawingArea(x);
         y = correctYToDrawingArea(y);
-
-        final float dX = x - mX;
-        final float dY = y - mY;
+        mXPosInd = x;
+        mYPosInd = y;
 
         switch (mState) {
+            case S_CURSOR_ON_START_IND:
+                // Cursor is moving
+                if (!isCursorInsideRadius(x, y, mX, mY, TOUCH_TOLERANCE)) {
+                    mState = State.S_GRAPH_DRAWING;
+                    colors.clear();
+                    break;
+                } 
+                break; 
             case S_START_INDICATOR_CATCHED:
-                mYStartIndicator = y;
+                clearDrawing();
+                mYStartInd = y;
                 break;
             case S_STOP_INDICATOR_CATCHED:
-                mYStopIndicator = y;
+                clearDrawing();
+                mYStopInd = y;
                 break;
-            case S_START_DRAW_GRAPH:
-                Log.d(TAG, "Draw graph");
+            case S_GRAPH_DRAWING:
                 // Allow only forward movements in x direction
-                if (x < mX)
+                if (x <= mX)
                     break;
-                if (Math.abs(dX) >= TOUCH_TOLERANCE || Math.abs(dY) >= TOUCH_TOLERANCE) {
+                if (!isCursorInsideRadius(x, y, mX, mY, TOUCH_TOLERANCE)) {
                     // Update color based on y position
                     int color = DataHelpers
-                            .getSpectrumColorFromRelative((y - padT) / (height - padT - padB));
+                            .getSpectrumColorFromRelative((y - padT + colorOffset) / (height - padT - padB));
                     colors.add(color);
                     mGraphPaint.setColor(color);
                     mGraphPaint.setStrokeWidth(mGraphLineWidth);
@@ -293,38 +286,40 @@ public class ColorGraphInputView extends View {
                     mGraphPath.moveTo(mX, mY);
                     mGraphPath.lineTo(x, y);
 
+                    // Stop indicator reached
+                    if (isCursorInsideRadius(x, y, mXStopInd, mYStopInd, mStopIndCatchRadius)) {
+                        mGraphPath.lineTo(mXStopInd, mYStopInd);
+                        mCanvas.drawPath(mGraphPath, mGraphPaint);
+                        mState = State.S_GRAPH_COMPLETE;
+                    }
+
                     // Patch must be drawn directly for using different colors
                     mCanvas.drawPath(mGraphPath, mGraphPaint);
+
                     mGraphPath.reset();
 
-                    drawIndicator(x, y);
+                    // Update cursor position
+                    mX = x;
+                    mY = y;
                 }
                 break;
         }
-
-        mY = y;
-        mX = x;
-
-        return;
-
-
     }
 
     private void onTouchUp(float x, float y) {
-
         switch (mState) {
             case S_START_INDICATOR_CATCHED:
             case S_STOP_INDICATOR_CATCHED:
-            case S_START_DRAW_GRAPH:
-                mState = State.S_EMPTY;
-                return;
+            case S_CURSOR_ON_START_IND:
+            case S_GRAPH_DRAWING:
+                mState = State.S_GRAPH_EMPTY;
+                clearDrawing();
+                break;
+            case S_GRAPH_COMPLETE:
+                Log.d(TAG, "Data points: " + colors.size());
+                break;
+
         }
-
-        mIndicatorPath.reset();
-        mIndicatorCirclePath.reset();
-
-        mX = 0;
-        mY = 0;
     }
 
     private void clearDrawing() {
@@ -332,12 +327,11 @@ public class ColorGraphInputView extends View {
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
         drawBackgroundGradient();
-        drawFrame();
         invalidate();
         setDrawingCacheEnabled(true);
     }
 
-    private void drawFrame() {
+    private void drawFrame(Canvas canvas) {
         mFramePaint.setStrokeWidth(mFrameWidth);
         mFramePaint.setColor(mFrameColor);
 
@@ -352,6 +346,7 @@ public class ColorGraphInputView extends View {
         mFramePath.lineTo(x1, y1);
         mFramePath.lineTo(x0, y1);
         mFramePath.lineTo(x0, y0);
+        canvas.drawPath(mFramePath, mFramePaint);
     }
 
     private void drawBackgroundGradient() {
@@ -360,46 +355,60 @@ public class ColorGraphInputView extends View {
 
         float y = mBackgroundGradientLineWidth/2 + padT;
 
-        for ( ; y < height - padB; y += mBackgroundGradientLineWidth) {
-            int color = DataHelpers.getSpectrumColorFromRelative((y-padT - mBackgroundGradientLineWidth/2)/(height-padB-padT));
+        for ( ; y < height - padB - mBackgroundGradientLineWidth; y += mBackgroundGradientLineWidth) {
+            int color = DataHelpers.getSpectrumColorFromRelative((y-padT - mBackgroundGradientLineWidth/2 + colorOffset)/(height-padB-padT));
             color = DataHelpers.setA(color, mBackgroundGradientAlpha);
             mBackgroundGradientPaint.setColor(color);
             mCanvas.drawLine(0 + padL + mFrameWidth/2,
                     y, width - padR - mFrameWidth/2, y, mBackgroundGradientPaint);
         }
 
-        // Redraw last line at y position wich fills rest of frame
-        y = y + ((height - padB - mFrameWidth/2) - (y + mBackgroundGradientLineWidth/2));
+        // Revert last y increment
+        y = y - mBackgroundGradientLineWidth;
+        // Rest width between frame and last line border
+        float restWidth = (height - padB - mFrameWidth/2) - (y + mBackgroundGradientLineWidth/2);
+        // Set y to middle of free space between frame and last line border
+        y = y + mBackgroundGradientLineWidth/2 + restWidth/2;
+        // Last line shall fill the free space
+        mBackgroundGradientPaint.setStrokeWidth(restWidth);
         mCanvas.drawLine(0 + padL, y,  width - padR, y, mBackgroundGradientPaint);
     }
 
-    private void drawIndicator(float x, float y) {
+    private void drawPosInd(Canvas canvas) {
+        mPosIndPath.reset();
+        mPosIndCircPath.reset();
+        if (mState != State.S_GRAPH_DRAWING)
+            return;
+
+        final float x0 = mX;
+        final float y0 = mY;
+
         // Draw vertical and horizontal lines
-        mIndicatorPaint.setStrokeWidth(mIndicatorLineWidth);
-        mIndicatorPaint.setColor(mIndicatorColor);
-        mIndicatorPath.reset();
+        mPosIndPaint.setStrokeWidth(mIndicatorLineWidth);
+        mPosIndPaint.setColor(mIndicatorColor);
         // Vertical
-        mIndicatorPath.moveTo(x, 0);
-        mIndicatorPath.lineTo(x, height);
+        mPosIndPath.moveTo(x0, 0);
+        mPosIndPath.lineTo(x0, height);
         // Horizontal
-        mIndicatorPath.moveTo(0, y);
-        mIndicatorPath.lineTo(width, y);
+        mPosIndPath.moveTo(0, y0);
+        mPosIndPath.lineTo(width, y0);
+        canvas.drawPath(mPosIndPath, mPosIndPaint);
 
         // Draw circle
-        mIndicatorCirclePaint.setStrokeWidth(mIndicatorCircleLineWidth);
-        mIndicatorCirclePaint.setColor(mIndicatorColor);
-        mIndicatorCirclePath.reset();
-        mIndicatorCirclePath.addCircle(x, y, mIndicatorRadius, Path.Direction.CW);
+        mPosIndCircPaint.setStrokeWidth(mIndicatorCircleLineWidth);
+        mPosIndCircPaint.setColor(mIndicatorColor);
+        mPosIndCircPath.addCircle(x0, y0, mIndicatorRadius, Path.Direction.CW);
+        canvas.drawPath(mPosIndCircPath, mPosIndCircPaint);
     }
 
-    private void drawStartIndicator(Canvas canvas) {
-        final float x0 = mXStartIndicator;
-        final float y0 = mYStartIndicator;
+    private void drawStartInd(Canvas canvas) {
+        final float x0 = mXStartInd;
+        final float y0 = mYStartInd;
 
         // Draw circle
         mStartIndCirclePath.reset();
         mStartIndCirclePaint.setColor(mStartIndCircleColor);
-        mStartIndCirclePath.addCircle(x0, y0 , mStartIndCircleRadius, Path.Direction.CW);
+        mStartIndCirclePath.addCircle(x0, y0 , mStartIndRadius, Path.Direction.CW);
         canvas.drawPath(mStartIndCirclePath, mStartIndCirclePaint);
 
         // Draw text
@@ -411,14 +420,14 @@ public class ColorGraphInputView extends View {
                 mStartIndTextPaint);
     }
 
-    private void drawStopIndicator(Canvas canvas) {
-        final float x0 = mXStopIndicator;
-        final float y0 = mYStopIndicator;
+    private void drawStopInd(Canvas canvas) {
+        final float x0 = mXStopInd;
+        final float y0 = mYStopInd;
 
         // Draw circle
         mStopIndCirclePath.reset();
         mStopIndCirclePaint.setColor(mStopIndCircleColor);
-        mStopIndCirclePath.addCircle(mXStopIndicator, x0 , y0, Path.Direction.CW);
+        mStopIndCirclePath.addCircle(x0 , y0, mStopIndRadius, Path.Direction.CW);
         canvas.drawPath(mStopIndCirclePath, mStopIndCirclePaint);
 
         // Draw text
@@ -426,7 +435,7 @@ public class ColorGraphInputView extends View {
         mStopIndTextPaint.setColor(mStopIndTextColor);
         Rect textBounds = new Rect();
         mStopIndTextPaint.getTextBounds("2", 0, 1, textBounds);
-        canvas.drawText("2", x0 - textBounds.width(),y0 + textBounds.height()/2,
+        canvas.drawText("2", x0 - textBounds.width()/2,y0 + textBounds.height()/2,
                 mStopIndTextPaint);
     }
 
@@ -434,63 +443,50 @@ public class ColorGraphInputView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawBitmap(mBitmap, 0, 0, mBitmapPaint);
-        canvas.drawPath(mIndicatorPath, mIndicatorPaint);
-        canvas.drawPath(mIndicatorCirclePath, mIndicatorCirclePaint);
-        canvas.drawPath(mFramePath, mFramePaint);
-        drawStartIndicator(canvas);
-        drawStopIndicator(canvas);
+        drawFrame(canvas);
+        drawPosInd(canvas);
+        drawStartInd(canvas);
+        drawStopInd(canvas);
     }
 
     private boolean isXLeftOfFrame(float x) {
-        if (x - mGraphLineWidth/2 < mFrameWidth/2 + padL)
-            return true;
-        else
-            return false;
+        if (x - mGraphLineWidth/2 < mFrameWidth + padL) return true;
+        return false;
     }
 
     private boolean isXRightOfFrame(float x) {
-        if (x + mGraphLineWidth/2 > width  - mFrameWidth/2 - padL)
-            return true;
-        else
-            return false;
+        if (x + mGraphLineWidth/2 > width  - mFrameWidth - padL) return true;
+        return false;
     }
 
     private float correctXToDrawingArea(float x) {
         // Correct x if on or outside frame
-        if (isXLeftOfFrame(x))
-            x = mGraphLineWidth/2 + mFrameWidth/2 + padL;
-        if (isXRightOfFrame(x))
-            x = width  - mGraphLineWidth/2 - mFrameWidth/2 - padR;
+        if (isXLeftOfFrame(x)) x = mGraphLineWidth/2 + mFrameWidth + padL;
+        if (isXRightOfFrame(x)) x = width  - mGraphLineWidth/2 - mFrameWidth - padR;
         return x;
     }
 
     private boolean isYTopOfFrame(float y) {
-        if (y - mGraphLineWidth/2 < mFrameWidth/2 + padT)
-            return true;
-        else
-            return false;
+        if (y - mGraphLineWidth/2 < mFrameWidth/2 + padT) return true;
+        return false;
     }
 
     private boolean isYBotOfFrame(float y) {
-        if (y + mGraphLineWidth/2 > height - mFrameWidth/2 - padB)
-            return true;
-        else
-            return false;
+        if (y + mGraphLineWidth/2 > height - mFrameWidth - padB - mGraphLineWidth/2) return true;
+        return false;
     }
 
     private float correctYToDrawingArea(float y) {
         // Correct y if on or outside frame
-        if (isYTopOfFrame(y))
-            y = mGraphLineWidth/2 + mFrameWidth/2 + padT;
-        if (isYBotOfFrame(y))
-            y = height - mGraphLineWidth/2 - mFrameWidth/2 - padB;
+        if (isYTopOfFrame(y)) y = mGraphLineWidth/2 + mFrameWidth/2 + padT;
+        if (isYBotOfFrame(y)) y = height - mGraphLineWidth/2 - mFrameWidth - padB;
         return y;
     }
 
     private boolean isCursorInsideRadius(float x, float y, float xC, float yC, float R) {
-        final float dX = x - cX;
+        final float dX = x - xC;
         final float dY = y - yC;
-        if (dX*dX + dY*dY <= r * r) {
+        if (dX*dX + dY*dY <= R*R) {
             return true;
         }
         return false;
