@@ -185,13 +185,6 @@ public class ColorGraphInputView extends View {
                 v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             }
         }
-
-        // TODO: Handle touch events here????
-
-        @Override
-        public boolean onDown(MotionEvent e) {
-            return true;
-        }
     }
 
     @Override
@@ -414,34 +407,18 @@ public class ColorGraphInputView extends View {
         mStartIndTextPaint.setColor(mStartIndTextColor);
         Rect textBounds = new Rect();
         mStartIndTextPaint.getTextBounds("1", 0, 1, textBounds);
-        canvas.drawText("1", mXStartIndicator-textBounds.width(),
-                mYStartIndicator+textBounds.height()/2, mStartIndTextPaint);
+        canvas.drawText("1", x0 - textBounds.width(), y0 + textBounds.height()/2,
+                mStartIndTextPaint);
     }
 
     private void drawStopIndicator(Canvas canvas) {
         final float x0 = mXStopIndicator;
         final float y0 = mYStopIndicator;
 
-        // Draw Drawer
-        mStopIndDrawerPath.reset();
-        CornerPathEffect corEffect = new CornerPathEffect(10);
-        mStopIndDrawerPaint.setPathEffect(corEffect);
-        mStopIndDrawerPaint.setStrokeWidth(2);
-        mStopIndDrawerPaint.setColor(mStopIndDrawerColor);
-        mStopIndDrawerPath.moveTo(x0, y0);
-        mStopIndDrawerPath.rLineTo(+mStopIndDrawerW2, -mStopIndDrawerH/2);
-        mStopIndDrawerPath.rLineTo(+mStopIndDrawerW1,  +0);
-        mStopIndDrawerPath.rLineTo(+0, +mStopIndDrawerH);
-        mStopIndDrawerPath.rLineTo(-mStopIndDrawerW1, 0);
-        mStopIndDrawerPath.rLineTo(-mStopIndDrawerW2, -mStopIndDrawerH/2);
-        canvas.drawPath(mStopIndDrawerPath, mStopIndDrawerPaint);
-
         // Draw circle
         mStopIndCirclePath.reset();
-        mStopIndCirclePaint.setStrokeWidth(mStopIndCircleWidth);
         mStopIndCirclePaint.setColor(mStopIndCircleColor);
-        mStopIndCirclePath.addCircle(
-                mXStopIndicator, mYStopIndicator , mStopIndCircleRadius, Path.Direction.CW);
+        mStopIndCirclePath.addCircle(mXStopIndicator, x0 , y0, Path.Direction.CW);
         canvas.drawPath(mStopIndCirclePath, mStopIndCirclePaint);
 
         // Draw text
@@ -449,10 +426,9 @@ public class ColorGraphInputView extends View {
         mStopIndTextPaint.setColor(mStopIndTextColor);
         Rect textBounds = new Rect();
         mStopIndTextPaint.getTextBounds("2", 0, 1, textBounds);
-        canvas.drawText("2", mXStopIndicator-textBounds.width(),
-                mYStopIndicator+textBounds.height()/2, mStopIndTextPaint);
+        canvas.drawText("2", x0 - textBounds.width(),y0 + textBounds.height()/2,
+                mStopIndTextPaint);
     }
-
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -511,9 +487,9 @@ public class ColorGraphInputView extends View {
         return y;
     }
 
-    private boolean isCursorInsideRadius(float x, float y, float r) {
-        final float dX = x - mXStartIndicator;
-        final float dY = y - mYStartIndicator;
+    private boolean isCursorInsideRadius(float x, float y, float xC, float yC, float R) {
+        final float dX = x - cX;
+        final float dY = y - yC;
         if (dX*dX + dY*dY <= r * r) {
             return true;
         }
