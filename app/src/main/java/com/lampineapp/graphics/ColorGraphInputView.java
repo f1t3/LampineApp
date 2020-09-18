@@ -82,6 +82,7 @@ public class ColorGraphInputView extends View {
     private float mYStartInd, mXStartInd;
     private float mYStopInd, mXStopInd;
     private float colorOffset = 0;
+    private int mGraphColor;
 
     // Settable parameters graph
     private float mGraphLineWidth = 18;
@@ -279,8 +280,12 @@ public class ColorGraphInputView extends View {
                     // Update color based on y position
                     int color = DataHelpers
                             .getSpectrumColorFromRelative((y - padT + colorOffset) / (height - padT - padB));
-                    colors.add(color);
-                    mGraphPaint.setColor(color);
+
+                    if (DataHelpers.isColorDeltaGreaterThan(color, mGraphColor, 255/2)) {
+                        colors.add(color);
+                        mGraphColor = color;
+                    }
+                    mGraphPaint.setColor(mGraphColor);
                     mGraphPaint.setStrokeWidth(mGraphLineWidth);
 
                     mGraphPath.moveTo(mX, mY);

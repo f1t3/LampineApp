@@ -121,4 +121,15 @@ public class DataHelpers {
         ret |= (A & 0xFF) << 24;
         return ret;
     }
+
+    public static boolean isColorDeltaGreaterThan(int c1, int c2, int dC) {
+        final float dR = getR(c1) - getR(c2);
+        final float dG = getG(c1) - getG(c2);
+        final float dB = getB(c1) - getB(c2);
+        if (dR*dR + dG*dG + dB*dB > dC*dC)
+            return true;
+        return false;
+    }
+
+
 }
