@@ -84,8 +84,12 @@ public class ColorGraphInputView extends View {
     private float colorOffset = 0;
     private int mGraphColor;
 
-    // Settable parameters graph
+    // Graph members
     private float mGraphLineWidth = 18;
+    // TODO: REMOVE SEPARATE ARRAYS?
+    private ColorCurve mColorCurve = new ColorCurve();
+    private List<Integer> mColorValues = new ArrayList<>();
+    private List<Float> mTimeValues_ms = new ArrayList<>();
 
     // Settable parameters frame
     private float mFrameWidth = 5;
@@ -124,9 +128,6 @@ public class ColorGraphInputView extends View {
     // Tolerances
     private static final float TOUCH_TOLERANCE = 6;
 
-    // TODO: IMPLEMENT PROPER CLASS
-    private List<Integer> colors = new ArrayList<>();
-
     public ColorGraphInputView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
@@ -155,6 +156,62 @@ public class ColorGraphInputView extends View {
         mStopIndCirclePaint.setStrokeWidth(1);
 
         mState = State.S_GRAPH_EMPTY;
+    }
+
+    public class ColorCurve {
+        private ArrayList<Integer> mColorVals = new ArrayList<>();
+        private ArrayList<Float> mRelativeTimestamp = new ArrayList<>();
+
+        public boolean setColorVals(ArrayList<Integer> colorVals) {
+            if (mRelativeTimestamp.isEmpty() || mRelativeTimestamp.size() == colorVals.size()) {
+                mColorVals = colorVals;
+                return true;
+            }
+            // Length mismatch
+            return false;
+        }
+
+        public boolean setRelativeTimestampVals(ArrayList<Float> timeVals_ms) {
+            if (mColorVals.isEmpty() || mColorVals.size() == timeVals_ms.size()) {
+                mRelativeTimestamp = mRelativeTimestamp;
+                return true;
+            }
+            // Length mismatch
+            return false;
+        }
+
+        public boolean addPair(int color, float time_ms) {
+            if (mRelativeTimestamp.size() == 0) {
+                mColorVals.add(color);
+                mRelativeTimestamp.add(time_ms);
+                return true;
+            }
+            if (mRelativeTimestamp.get(mRelativeTimestamp.size() - 1) < time_ms) {
+                mColorVals.add(color);
+                mRelativeTimestamp.add(time_ms);
+                return true;
+            }
+            // Time not advancing
+            return false;
+        }
+
+        public void clear() {
+            mColorVals.clear();
+            mRelativeTimestamp.clear();
+        }
+
+        public int getLastColorVal() {
+            if (mColorVals.isEmpty())
+                return 0;
+            else
+                return mColorVals.get(mColorVals.size() - 1 );
+        }
+
+        public void setPeriod_ms() {
+            // TODO: implement
+        }
+
+        public int size() { return mColorVals.size(); }
     }
 
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -260,7 +317,9 @@ public class ColorGraphInputView extends View {
                 // Cursor is moving
                 if (!isCursorInsideRadius(x, y, mX, mY, TOUCH_TOLERANCE)) {
                     mState = State.S_GRAPH_DRAWING;
-                    colors.clear();
+                    // TODO: MOVE TO POSITION WHERE NOT 100 OBJECTS ARE CREATED!
+                    mColorCurve = new ColorCurve();
+                    //mColorCurve.clear();
                     break;
                 } 
                 break; 
@@ -277,15 +336,18 @@ public class ColorGraphInputView extends View {
                 if (x <= mX)
                     break;
                 if (!isCursorInsideRadius(x, y, mX, mY, TOUCH_TOLERANCE)) {
-                    // Update color based on y position
+                    // Update color on screen based on y position
+                    final float relativeYPosOnFrame = (y-padT+colorOffset) / (height-padT-padB);
+                    final float relativeXPosOnFrame = (x-padL) / (width-padL-padR);
+                    final int lastColorValue = mColorCurve.getLastColorVal();
                     int color = DataHelpers
-                            .getSpectrumColorFromRelative((y - padT + colorOffset) / (height - padT - padB));
-
-                    if (DataHelpers.isColorDeltaGreaterThan(color, mGraphColor, 255/2)) {
-                        colors.add(color);
-                        mGraphColor = color;
+                            .getSpectrumColorFromRelative(relativeYPosOnFrame);
+                    // Store as new databpoint if color delta exceeds threshold
+                    if (DataHelpers.isColorDeltaGreaterThan(color, lastColorValue, 255/16)) {
+                        mColorCurve.addPair(color, relativeYPosOnFrame);
                     }
-                    mGraphPaint.setColor(mGraphColor);
+                    // TODO: USE REAL COLOR AT POS?
+                    mGraphPaint.setColor(lastColorValue);
                     mGraphPaint.setStrokeWidth(mGraphLineWidth);
 
                     mGraphPath.moveTo(mX, mY);
@@ -321,7 +383,7 @@ public class ColorGraphInputView extends View {
                 clearDrawing();
                 break;
             case S_GRAPH_COMPLETE:
-                Log.d(TAG, "Data points: " + colors.size());
+                Log.d(TAG, "Data points: " + mColorCurve.size());
                 break;
 
         }
