@@ -10,7 +10,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RadialGradient;
 import android.graphics.Rect;
+import android.graphics.Shader;
+import android.provider.ContactsContract;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -33,6 +36,7 @@ public class ColorGraphInputView extends View {
         S_GRAPH_EMPTY,
         S_CURSOR_ON_START_IND,
         S_START_INDICATOR_CATCHED,
+        S_START_INDICATOR_MOVING,
         S_STOP_INDICATOR_CATCHED,
         S_GRAPH_DRAWING,
         S_GRAPH_COMPLETE
@@ -41,7 +45,7 @@ public class ColorGraphInputView extends View {
 
     private GestureDetectorCompat mGestureDetector;
     private GestureListener mGestureListener;
-
+    ColorCurveCompleteCallbackFunction mColorCurveCompleteCallbackFunction;
 
     private Paint mBackgroundGradientPaint = new Paint();
 
@@ -67,11 +71,17 @@ public class ColorGraphInputView extends View {
     // Start indicator
     private Paint mStartIndCirclePaint = new Paint();
     private Paint mStartIndTextPaint = new Paint();
+    private Paint mStartIndMovCirclePaint = new Paint();
+    private boolean mStartIndIsMoving = false;
+
+    // TODO: REMOVE UNECESSARY PATHS AND DRAW ON CANVAS DIRECTLY!!!
     private Path mStartIndCirclePath = new Path();
     // Stop indicator
     private Paint mStopIndCirclePaint = new Paint();
     private Paint mStopIndTextPaint = new Paint();
+    private Paint mStopIndMovCirclePaint = new Paint();
     private Path mStopIndCirclePath = new Path();
+    private boolean mStopIndIsMoving = false;
     // Indicator match line
     private Paint mIndMatchLinePaint = new Paint();
     private Path mIndMatchLinePath = new Path();
@@ -106,14 +116,15 @@ public class ColorGraphInputView extends View {
     private int   mBackgroundGradientAlpha = 50;
 
     // Settable parameters start indicator
-    private float mStartIndCatchRadius = 40;
+    private float mStartIndCatchRadius = 25;
     private float mStartIndRadius = 30;
     private int mStartIndCircleColor = Color.BLACK;
     private int mStartIndTextColor = Color.WHITE;
     private float mStartIndTextSize = 40;
+    private float mStartIndMovingIndRadius = 150;
 
     // Settable parameters stop indicator
-    private float mStopIndCatchRadius = 40;
+    private float mStopIndCatchRadius = 25;
     private float mStopIndRadius = 30;
     private int mStopIndCircleColor = Color.BLACK;
     private int mStopIndTextColor = Color.WHITE;
@@ -126,7 +137,7 @@ public class ColorGraphInputView extends View {
     private float padR = 50;
 
     // Tolerances
-    private static final float TOUCH_TOLERANCE = 6;
+    private static final float TOUCH_TOLERANCE = 2;
 
     public ColorGraphInputView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -134,9 +145,11 @@ public class ColorGraphInputView extends View {
         mGestureListener = new GestureListener(this);
         mGestureDetector = new GestureDetectorCompat(context, mGestureListener);
 
+        // Graph
         mGraphPaint = new Paint();
         mGraphPaint.setStyle(Paint.Style.STROKE);
         mGraphPaint.setStrokeCap(Paint.Cap.ROUND);
+        mGraphPaint.setStrokeWidth(mGraphLineWidth);
         mGraphPath = new Path();
 
         // Frame
@@ -156,6 +169,14 @@ public class ColorGraphInputView extends View {
         mStopIndCirclePaint.setStrokeWidth(1);
 
         mState = State.S_GRAPH_EMPTY;
+    }
+
+    public interface ColorCurveCompleteCallbackFunction {
+        void onColorCurveComplete(ColorCurve curve);
+    }
+
+    public void setColorCurveCompleteCallbackFunction(ColorCurveCompleteCallbackFunction f) {
+        mColorCurveCompleteCallbackFunction = f;
     }
 
     public class ColorCurve {
@@ -234,7 +255,7 @@ public class ColorGraphInputView extends View {
                 mState = State.S_START_INDICATOR_CATCHED;
                 v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
             }
-            // Long press on start indicator
+            // Long press on stop indicator
             if (isCursorInsideRadius
                     (x0, y0, mXStopInd, mYStopInd, mStopIndCatchRadius)) {
                 mState = State.S_STOP_INDICATOR_CATCHED;
@@ -325,31 +346,33 @@ public class ColorGraphInputView extends View {
                 break; 
             case S_START_INDICATOR_CATCHED:
                 clearDrawing();
+                mStartIndIsMoving = true;
                 mYStartInd = y;
                 break;
             case S_STOP_INDICATOR_CATCHED:
                 clearDrawing();
+                mStopIndIsMoving = true;
                 mYStopInd = y;
                 break;
             case S_GRAPH_DRAWING:
                 // Allow only forward movements in x direction
                 if (x <= mX)
                     break;
+                // Update graph if threshold exceeded
                 if (!isCursorInsideRadius(x, y, mX, mY, TOUCH_TOLERANCE)) {
                     // Update color on screen based on y position
-                    final float relativeYPosOnFrame = (y-padT+colorOffset) / (height-padT-padB);
-                    final float relativeXPosOnFrame = (x-padL) / (width-padL-padR);
+                    int color = getCurrentColorFromYPos(y);
                     final int lastColorValue = mColorCurve.getLastColorVal();
-                    int color = DataHelpers
-                            .getSpectrumColorFromRelative(relativeYPosOnFrame);
-                    // Store as new databpoint if color delta exceeds threshold
+                    // Perform feedback on start of graph drawing
+                    if (lastColorValue == 0)
+                        this.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+                    // Store as new data point if color delta exceeds threshold
+                    final float relativeXPosOnFrame = (x-padL) / (width-padL-padR);
                     if (DataHelpers.isColorDeltaGreaterThan(color, lastColorValue, 255/16)) {
-                        mColorCurve.addPair(color, relativeYPosOnFrame);
+                        mColorCurve.addPair(color, relativeXPosOnFrame);
                     }
                     // TODO: USE REAL COLOR AT POS?
                     mGraphPaint.setColor(lastColorValue);
-                    mGraphPaint.setStrokeWidth(mGraphLineWidth);
-
                     mGraphPath.moveTo(mX, mY);
                     mGraphPath.lineTo(x, y);
 
@@ -358,6 +381,7 @@ public class ColorGraphInputView extends View {
                         mGraphPath.lineTo(mXStopInd, mYStopInd);
                         mCanvas.drawPath(mGraphPath, mGraphPaint);
                         mState = State.S_GRAPH_COMPLETE;
+                        this.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                     }
 
                     // Patch must be drawn directly for using different colors
@@ -380,10 +404,13 @@ public class ColorGraphInputView extends View {
             case S_CURSOR_ON_START_IND:
             case S_GRAPH_DRAWING:
                 mState = State.S_GRAPH_EMPTY;
+                mStartIndIsMoving = false;
+                mStopIndIsMoving = false;
                 clearDrawing();
                 break;
             case S_GRAPH_COMPLETE:
                 Log.d(TAG, "Data points: " + mColorCurve.size());
+                mColorCurveCompleteCallbackFunction.onColorCurveComplete(mColorCurve);
                 break;
 
         }
@@ -473,6 +500,16 @@ public class ColorGraphInputView extends View {
         final float x0 = mXStartInd;
         final float y0 = mYStartInd;
 
+        // Draw moving indicator
+        if (mStartIndIsMoving) {
+            final int colors[] = {getCurrentColorFromYPos(y0), Color.TRANSPARENT};
+            final float positions[] = {0, 1};
+            final RadialGradient grad = new RadialGradient(
+                    x0, y0, mStartIndMovingIndRadius, colors, positions, Shader.TileMode.CLAMP);
+            mStartIndMovCirclePaint.setShader(grad);
+            canvas.drawCircle(x0,y0, mStartIndMovingIndRadius, mStartIndMovCirclePaint);
+        }
+
         // Draw circle
         mStartIndCirclePath.reset();
         mStartIndCirclePaint.setColor(mStartIndCircleColor);
@@ -558,6 +595,11 @@ public class ColorGraphInputView extends View {
             return true;
         }
         return false;
+    }
+
+    private int getCurrentColorFromYPos(float y) {
+        return DataHelpers
+                .getSpectrumColorFromRelative((y-padT+colorOffset) / (height-padT-padB));
     }
 
 }
