@@ -1,8 +1,6 @@
 package com.lampineapp.helper;
 
-import android.util.Log;
-
-import com.lampineapp.graphics.ColorGraphInputView;
+import com.lampineapp.graphics.colorgraphinputview.ColorGraphInputView;
 
 import static java.lang.Math.abs;
 import static java.lang.Math.floor;

@@ -7,7 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.app.Fragment;
 
-import com.lampineapp.graphics.ColorGraphInputView;
+import com.lampineapp.graphics.colorgraphinputview.ColorGraphInputView;
 
 public class FragmentAddLampMode extends Fragment {
 

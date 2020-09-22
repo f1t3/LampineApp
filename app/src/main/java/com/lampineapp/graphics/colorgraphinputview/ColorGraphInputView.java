@@ -2,7 +2,7 @@
 Credits to https://stackoverflow.com/questions/16650419/draw-in-canvas-by-finger-android
  */
 
-package com.lampineapp.graphics;
+package com.lampineapp.graphics.colorgraphinputview;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,7 +13,6 @@ import android.graphics.Path;
 import android.graphics.RadialGradient;
 import android.graphics.Rect;
 import android.graphics.Shader;
-import android.provider.ContactsContract;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -50,8 +49,7 @@ public class ColorGraphInputView extends View {
     private Paint mBackgroundGradientPaint = new Paint();
 
     private Paint mGraphPaint;
-    public int width;
-    public  int height;
+
     private Bitmap mBitmap;
     private Canvas  mCanvas;
 
@@ -61,6 +59,7 @@ public class ColorGraphInputView extends View {
 
     // Graph
     private Path mGraphPath = new Path();
+    // Background
     // Background
     private Paint mBitmapPaint = new Paint();
     // Position indicator
@@ -91,8 +90,6 @@ public class ColorGraphInputView extends View {
     private float mXPosInd, mYPosInd;
     private float mYStartInd, mXStartInd;
     private float mYStopInd, mXStopInd;
-    private float colorOffset = 0;
-    private int mGraphColor;
 
     // Graph members
     private float mGraphLineWidth = 18;
@@ -129,12 +126,6 @@ public class ColorGraphInputView extends View {
     private int mStopIndCircleColor = Color.BLACK;
     private int mStopIndTextColor = Color.WHITE;
     private float mStopIndTextSize = 40;
-
-    // Padding
-    private float padT = 50;
-    private float padB = 50;
-    private float padL = 50;
-    private float padR = 50;
 
     // Tolerances
     private static final float TOUCH_TOLERANCE = 2;
@@ -496,34 +487,7 @@ public class ColorGraphInputView extends View {
         canvas.drawPath(mPosIndCircPath, mPosIndCircPaint);
     }
 
-    private void drawStartInd(Canvas canvas) {
-        final float x0 = mXStartInd;
-        final float y0 = mYStartInd;
 
-        // Draw moving indicator
-        if (mStartIndIsMoving) {
-            final int colors[] = {getCurrentColorFromYPos(y0), Color.TRANSPARENT};
-            final float positions[] = {0, 1};
-            final RadialGradient grad = new RadialGradient(
-                    x0, y0, mStartIndMovingIndRadius, colors, positions, Shader.TileMode.CLAMP);
-            mStartIndMovCirclePaint.setShader(grad);
-            canvas.drawCircle(x0,y0, mStartIndMovingIndRadius, mStartIndMovCirclePaint);
-        }
-
-        // Draw circle
-        mStartIndCirclePath.reset();
-        mStartIndCirclePaint.setColor(mStartIndCircleColor);
-        mStartIndCirclePath.addCircle(x0, y0 , mStartIndRadius, Path.Direction.CW);
-        canvas.drawPath(mStartIndCirclePath, mStartIndCirclePaint);
-
-        // Draw text
-        mStartIndTextPaint.setTextSize(mStartIndTextSize);
-        mStartIndTextPaint.setColor(mStartIndTextColor);
-        Rect textBounds = new Rect();
-        mStartIndTextPaint.getTextBounds("1", 0, 1, textBounds);
-        canvas.drawText("1", x0 - textBounds.width(), y0 + textBounds.height()/2,
-                mStartIndTextPaint);
-    }
 
     private void drawStopInd(Canvas canvas) {
         final float x0 = mXStopInd;
@@ -588,18 +552,6 @@ public class ColorGraphInputView extends View {
         return y;
     }
 
-    private boolean isCursorInsideRadius(float x, float y, float xC, float yC, float R) {
-        final float dX = x - xC;
-        final float dY = y - yC;
-        if (dX*dX + dY*dY <= R*R) {
-            return true;
-        }
-        return false;
-    }
 
-    private int getCurrentColorFromYPos(float y) {
-        return DataHelpers
-                .getSpectrumColorFromRelative((y-padT+colorOffset) / (height-padT-padB));
-    }
 
 }

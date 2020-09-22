@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <com.lampineapp.graphics.ColorGraphInputView
+    <com.lampineapp.graphics.colorgraphinputview.ColorGraphInputView
         android:id="@+id/add_lamp_config_color_graph_input"
         android:layout_width="match_parent"
         android:layout_height="350dp" />
