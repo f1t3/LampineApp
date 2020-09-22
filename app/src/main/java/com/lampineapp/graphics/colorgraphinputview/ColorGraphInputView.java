@@ -18,11 +18,6 @@ import android.view.View;
 
 import androidx.core.view.GestureDetectorCompat;
 
-import com.lampineapp.helper.DataHelpers;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class ColorGraphInputView extends View {
 
     private final static String TAG = ColorGraphInputView.class.getSimpleName();
@@ -40,48 +35,37 @@ public class ColorGraphInputView extends View {
 
     private GestureDetectorCompat mGestureDetector;
     private GestureListener mGestureListener;
-    CurvePointIndicator mStartInd = new CurvePointIndicator("1");
-    CurvePointIndicator mStopInd = new CurvePointIndicator("2");
-
-    // Position indicator
-    private Paint mPosIndPaint = new Paint();
-    private Path mPosIndPath = new Path();
-    private Paint mPosIndCircPaint = new Paint() ;
-    private Path mPosIndCircPath = new Path();
-
-    // TODO: REMOVE UNECESSARY PATHS AND DRAW ON CANVAS DIRECTLY!!!
+    private CurvePointIndicator mStartInd = new CurvePointIndicator("1");
+    private CurvePointIndicator mStopInd = new CurvePointIndicator("2");
+    private CurvePositionIndicator mPosInd = new CurvePositionIndicator();
+    private ColorGraph mColorGraph = new ColorGraph();
+    private static CurveCompleteCallbackFun mCurveCompleteCallbackFun;
 
     // Working variables
     private float mX, mY;
 
-    // Graph members
-    private float mGraphLineWidth = 18;
+    /***********************************************************************************************
+     *
+     * Interfaces
+     */
+    public interface CurveCompleteCallbackFun {
+        void onCurveComplete(ColorTimeSeries curve);
+    }
 
-    // TODO: REMOVE SEPARATE ARRAYS?
-    private ColorGraph mColorGraph = new ColorGraph();
-    private List<Integer> mColorValues = new ArrayList<>();
-    private List<Float> mTimeValues_ms = new ArrayList<>();
-
-    // Settable parameters indicator
-    private float mIndicatorLineWidth = 4;
-    private float mIndicatorCircleLineWidth = 20;
-    private float mIndicatorRadius = 10;
-    private int mIndicatorColor = Color.BLACK;
-
-    // Tolerances
-    private static final float TOUCH_TOLERANCE = 2;
-
+    /***********************************************************************************************
+     *
+     * Public methods
+     */
     public ColorGraphInputView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         mGestureListener = new GestureListener(this);
         mGestureDetector = new GestureDetectorCompat(context, mGestureListener);
-
-        // Position indicator
-        mPosIndPaint.setStyle(Paint.Style.STROKE);
-        mPosIndCircPaint.setStyle(Paint.Style.FILL);
-
         mState = State.S_GRAPH_EMPTY;
+    }
+
+    public void setCurveCompleteCallbackFun(CurveCompleteCallbackFun fun) {
+        mCurveCompleteCallbackFun = fun;
     }
 
     private class GestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -171,7 +155,8 @@ public class ColorGraphInputView extends View {
         switch (mState) {
             case S_CURSOR_ON_START_IND:
                 // Cursor is moving
-                if (!Helpers.isInsideRadius(x, y, mX, mY, TOUCH_TOLERANCE)) {
+                // TODO: TOLERANCE??????
+                if (!Helpers.isInsideRadius(x, y, mX, mY, 10)) {
                     mState = State.S_GRAPH_DRAWING;
                     // TODO: MOVE TO POSITION WHERE NOT 100 OBJECTS ARE CREATED!
                     mColorGraph = new ColorGraph();
@@ -188,7 +173,8 @@ public class ColorGraphInputView extends View {
                 mStopInd.Y = y;
                 break;
             case S_GRAPH_DRAWING:
-                ColorGraph.addSegment(x, y);
+                mColorGraph.addSegment(x, y);
+                mPosInd.setPos(x, y);
                 break;
         }
     }
@@ -204,45 +190,17 @@ public class ColorGraphInputView extends View {
                 InputFrame.clearFrame();
                 break;
             case S_GRAPH_COMPLETE:
-                Log.d(TAG, "Data points: " + mColorGraph.size());
-                mColorGraph.finish();
+                Log.d(TAG, "Data points: " + mColorGraph.CURVE.size());
+                mCurveCompleteCallbackFun.onCurveComplete(mColorGraph.CURVE);
                 break;
         }
-    }
-
-
-    private void drawPosInd(Canvas canvas) {
-        mPosIndPath.reset();
-        mPosIndCircPath.reset();
-        if (mState != State.S_GRAPH_DRAWING)
-            return;
-
-        final float x0 = mX;
-        final float y0 = mY;
-
-        // Draw vertical and horizontal lines
-        mPosIndPaint.setStrokeWidth(mIndicatorLineWidth);
-        mPosIndPaint.setColor(mIndicatorColor);
-        // Vertical
-        mPosIndPath.moveTo(x0, InputFrame.getY0());
-        mPosIndPath.lineTo(x0, InputFrame.getY1());
-        // Horizontal
-        mPosIndPath.moveTo(InputFrame.getX0(), y0);
-        mPosIndPath.lineTo(InputFrame.getX1(), y0);
-        canvas.drawPath(mPosIndPath, mPosIndPaint);
-
-        // Draw circle
-        mPosIndCircPaint.setStrokeWidth(mIndicatorCircleLineWidth);
-        mPosIndCircPaint.setColor(mIndicatorColor);
-        mPosIndCircPath.addCircle(x0, y0, mIndicatorRadius, Path.Direction.CW);
-        canvas.drawPath(mPosIndCircPath, mPosIndCircPaint);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         InputFrame.draw(canvas);
-        drawPosInd(canvas);
+        mPosInd.draw(canvas);
         mStartInd.draw(canvas);
         mStopInd.draw(canvas);
     }

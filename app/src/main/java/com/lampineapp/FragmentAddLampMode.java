@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.app.Fragment;
 
 import com.lampineapp.graphics.colorgraphinputview.ColorGraphInputView;
+import com.lampineapp.graphics.colorgraphinputview.ColorTimeSeries;
 
 public class FragmentAddLampMode extends Fragment {
 
@@ -26,10 +27,10 @@ public class FragmentAddLampMode extends Fragment {
 
         // Color graph input
         mColorGraphInputView = v.findViewById(R.id.add_lamp_config_color_graph_input);
-        mColorGraphInputView.setColorCurveCompleteCallbackFunction(
-                new ColorGraphInputView.ColorCurveCompleteCallbackFunction() {
+        mColorGraphInputView.setCurveCompleteCallbackFun(
+                new ColorGraphInputView.CurveCompleteCallbackFun() {
                     @Override
-                    public void onColorCurveComplete(ColorGraphInputView.ColorCurve curve) {
+                    public void onCurveComplete(ColorTimeSeries curve) {
                         String configItemString = generateConfigItemString(curve);
                         Log.d(TAG, configItemString);
                     }
@@ -52,7 +53,7 @@ public class FragmentAddLampMode extends Fragment {
 //                });
 //    }
 
-    private String generateConfigItemString(ColorGraphInputView.ColorCurve graph) {
+    private String generateConfigItemString(ColorTimeSeries curve) {
         return "test";
     }
 }
