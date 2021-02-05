@@ -248,6 +248,21 @@ public class BluetoothLeService extends Service {
         return true;
     }
 
+    public boolean isConnected(final String address) {
+        if (mBluetoothGatt == null) {
+            return false;
+        }
+        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        if (device == null) {
+            return false;
+        }
+        if (mBluetoothManager.getConnectionState(device, BluetoothProfile.GATT) == STATE_CONNECTED) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
      * Disconnects an existing connection or cancel a pending connection. The disconnection result
      * is reported asynchronously through the

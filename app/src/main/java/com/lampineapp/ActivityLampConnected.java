@@ -16,6 +16,8 @@
 
 package com.lampineapp;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.FragmentManager;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -39,6 +41,7 @@ import android.app.Fragment;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.btle.BluetoothLeService;
 import com.btle.SampleGattAttributes;
@@ -52,6 +55,10 @@ import java.util.ArrayList;
  * turn interacts with the Bluetooth LE API.
  */
 public class ActivityLampConnected extends AppCompatActivity {
+
+	private DialogWithTwoButtons waitForLampConnectedDialog;
+
+	private Activity mActivity;
 	private ImageButton mButtonLiveControlLamp, mButtonConfigureLamp, mButtonDisplayLampInfo, mButtonLampConsole;
 	private Fragment mCurrentUiAreaFragment, mLastUiAreaFragment;
 	private ActionBar mActionBar;
@@ -77,6 +84,12 @@ public class ActivityLampConnected extends AppCompatActivity {
 	private BluetoothGattCharacteristic characteristicTX;
 	private BluetoothGattCharacteristic characteristicRX;
 
+	// Fragments of activity
+	private FragmentLiveControlLamp mFragmentLiveControlLamp = new FragmentLiveControlLamp();
+	private FragmentConfigureLamp mFragmentConfigureLamp = new FragmentConfigureLamp();
+	private FragmentDisplayLampInfo mFragmentDisplayLampInfo = new FragmentDisplayLampInfo();
+	private FragmentLampConsole mFragmentLampConsole = new FragmentLampConsole();
+
 	// Code to manage Service lifecycle.
 	private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -93,6 +106,13 @@ public class ActivityLampConnected extends AppCompatActivity {
 			// initialization.
 			mBluetoothLeService.connect(mDeviceAddress);
 
+			while (!mBluetoothLeService.isConnected(mDeviceAddress)) {
+				sleep_ms(2000);
+				mBluetoothLeService.connect(mDeviceAddress);
+			}
+			if (waitForLampConnectedDialog != null) {
+				waitForLampConnectedDialog.cancel();
+			}
 		}
 
 		@Override
@@ -143,7 +163,9 @@ public class ActivityLampConnected extends AppCompatActivity {
 				// otherwise attach new message to buffer
 				mReceiveBuffer += receivedMessage;
 				if (receivedMessage.endsWith("\r\n")) {
-					mSerialReceiveCallbackFunction.onSerialDataReceived(mReceiveBuffer);
+					if (mSerialReceiveCallbackFunction != null) {
+						mSerialReceiveCallbackFunction.onSerialDataReceived(mReceiveBuffer);
+					}
 					mReceiveBuffer = "";
 				}
 			}
@@ -208,18 +230,13 @@ public class ActivityLampConnected extends AppCompatActivity {
 		//mActionBar.setSubtitle(R.string.title_live_control_lamp);
 		mActionBar.setDisplayHomeAsUpEnabled(true);
 
-		// TODO: causes crash
-		// Default view: live control
-		//replaceHighlightedNavigationButton(mButtonLiveControlLamp);
-		//replaceCurrentUiAreaFragment(new FragmentLiveControlLamp());
-
 		// Get UI elements, define listeners
 		mButtonLiveControlLamp = findViewById(R.id.button_lamp_live_control);
 		mButtonLiveControlLamp.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				replaceHighlightedNavigationButton(mButtonLiveControlLamp);
-				replaceCurrentUiAreaFragment(new FragmentLiveControlLamp());
+				replaceCurrentUiAreaFragment(mFragmentLiveControlLamp);
 				//mActionBar.setSubtitle(R.string.title_live_control_lamp);
 			}
 		});
@@ -228,7 +245,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 			@Override
 			public void onClick(View v) {
 				replaceHighlightedNavigationButton(mButtonConfigureLamp);
-				replaceCurrentUiAreaFragment(new FragmentConfigureLamp());
+				replaceCurrentUiAreaFragment(mFragmentConfigureLamp);
 				//mActionBar.setSubtitle(R.string.title_configure_lamp);
 			}
 		});
@@ -237,7 +254,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 			@Override
 			public void onClick(View v) {
 				replaceHighlightedNavigationButton(mButtonDisplayLampInfo);
-				replaceCurrentUiAreaFragment(new FragmentDisplayLampInfo());
+				replaceCurrentUiAreaFragment(mFragmentDisplayLampInfo);
 				//mActionBar.setSubtitle(R.string.title_lamp_info);
 
 			}
@@ -247,9 +264,28 @@ public class ActivityLampConnected extends AppCompatActivity {
 			@Override
 			public void onClick(View view) {
 				replaceHighlightedNavigationButton(mButtonLampConsole);
-				replaceCurrentUiAreaFragment(new FragmentLampConsole());
+				replaceCurrentUiAreaFragment(mFragmentLampConsole);
 			}
 		});
+
+		waitForLampConnectedDialog = new DialogWithTwoButtons(this,
+				getString(R.string.connectong_to_lamp), "OK", "",
+				true) {
+			@Override
+			void onPositiveBtnClick() {
+				// Request permission.
+				this.cancel();
+			}
+
+			@Override
+			void onNegativeBtnClick() {
+				return;
+			}
+		};
+
+		// Display live control fragment
+		replaceHighlightedNavigationButton(mButtonLiveControlLamp);
+		replaceCurrentUiAreaFragment(mFragmentLiveControlLamp);
 
 		// bind service
 		Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
@@ -376,19 +412,22 @@ public class ActivityLampConnected extends AppCompatActivity {
 		final int PACK_SIZE = 20;
 		// Transmit in packages of 20, since characteristic cannot exceed 20 bytes
 		while (str.length() > PACK_SIZE) {
-			// Transmit first 10 chars per iteration
+			// Transmit first 20 chars per iteration
 			if (mConnected) {
-				characteristicTX.setValue(str.substring(0, PACK_SIZE).getBytes());
+				characteristicTX.setValue(str.substring(0, PACK_SIZE-1).getBytes());
 				mBluetoothLeService.writeCharacteristic(characteristicTX);
+			} else {
+				return;
 			}
 			str = str.substring(PACK_SIZE);
-			sleep_ms(2);
+			sleep_ms(40);
 		}
 		// Transmit rest of chars
-		final byte[] tx = str.getBytes();
 		if (mConnected) {
-			characteristicTX.setValue(str);
+			characteristicTX.setValue(str.getBytes());
 			mBluetoothLeService.writeCharacteristic(characteristicTX);
+		}	else {
+			return;
 		}
 	}
 

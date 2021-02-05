@@ -31,7 +31,8 @@ import java.util.ArrayList;
 public class
 ActivityConnectToLamp extends AppCompatActivity {
 
-    final boolean LIST_ALL_BTLE_DEVICES = true;
+    final boolean LIST_ALL_BTLE_DEVICES = false;
+
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private ListView mListView;
     private BluetoothAdapter mBluetoothAdapter;
@@ -321,7 +322,8 @@ ActivityConnectToLamp extends AppCompatActivity {
         final String name = device.getName();
         if (name == null)
             return false;
-        if (name.equals("LampineK10RGB_EVL1")) {
+        if (    name.equals("LampineK10RGB_EVL1") ||
+                name.equals("Lampine-K9RGB-r1")) {
             return true;
         }
         return false;

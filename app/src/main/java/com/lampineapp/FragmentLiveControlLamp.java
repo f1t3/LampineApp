@@ -26,12 +26,17 @@ public class FragmentLiveControlLamp extends Fragment {
     View mSliderColorIndicatorLine;
     Slider mSliderIntensity, mSliderColor;
     Slider.OnChangeListener mSliderColorOnChangeListener;
+    Slider.OnChangeListener mSliderIntensityOnChangeListener;
+
     TextView mTextViewColorPicker;
     Button mButtonRainbow50, mButtonRainbow200;
     ActivityLampConnected mSenderActivity;
 
     int rainbowState = 0;
     boolean mAckReceived = true;
+
+    int rLast = 0, gLast = 0, bLast = 0;
+    int iIntensityLase = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,12 +56,40 @@ public class FragmentLiveControlLamp extends Fragment {
                 if (b) {
                     // Colored mode
                     mConstraintLayoutColorPicker.setVisibility(View.VISIBLE);
+                    mSenderActivity.sendSerialString("lctl c 0 0 0\r\n");
                 } else {
                     // No colored mode
                     mConstraintLayoutColorPicker.setVisibility(View.GONE);
+                    mSenderActivity.sendSerialString("lctl w 200\r\n");
+
                 }
             }
         });
+
+        mSliderIntensity = v.findViewById(R.id.live_control_intensity_slider);
+        mSliderIntensityOnChangeListener = new Slider.OnChangeListener() {
+            @Override
+            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+                // Remove listener for time of processing current change
+                mSliderIntensity.removeOnChangeListener(mSliderIntensityOnChangeListener);
+
+                // Max value 1000
+
+                final int iIntensity = (int) (value);
+                final int intensityDeltaThreshold = 50;
+                if (Math.abs(iIntensityLase - iIntensity) > intensityDeltaThreshold) {
+                    iIntensityLase = iIntensity;
+                    mSenderActivity.sendSerialString("lctl w " + iIntensity + "\r\n");
+                    sleep_ms(40);
+                }
+
+                // Re-add listener after short delay
+                // TODO: DO SOME VALUE DELTA BASED PREVENT OF SENDING CHANGE VIA SERIAL
+                mSliderIntensity.addOnChangeListener(mSliderIntensityOnChangeListener);
+            }
+        };
+        mSliderIntensity.addOnChangeListener(mSliderIntensityOnChangeListener);
+
 
         // Color slider
         mConstraintLayoutColorPicker = v.findViewById(R.id.live_control_color_picker_layout);
@@ -67,7 +100,7 @@ public class FragmentLiveControlLamp extends Fragment {
             @Override
             public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
                 // Remove listener for time of processing current change
-                //mSliderColor.removeOnChangeListener(mSliderColorOnChangeListener);
+                mSliderColor.removeOnChangeListener(mSliderColorOnChangeListener);
 
                 // Redraw line over slider
                 //int indicatorXPos = (int)(mSliderColor.getPaddingStart() + mSliderColor.getTranslationX());
@@ -75,18 +108,18 @@ public class FragmentLiveControlLamp extends Fragment {
                 mSliderColorIndicatorLine.setTranslationX(indicatorXPos);
 
                 // Prepare listener for ACK
-                mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
-                    @Override
-                    public void onSerialDataReceived(String data) {
-                        if (data.contains("ACK"))
-                            mAckReceived = true;
-                    }
-                });
+//                mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
+//                    @Override
+//                    public void onSerialDataReceived(String data) {
+//                        if (data.contains("ACK"))
+//                            mAckReceived = true;
+//                    }
+//                });
 
                 // If last message was not ACK'd yet, skip this one
                 if (mAckReceived == false) {
-                   // mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
-                    return;
+                    //mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
+                    //return;
                 }
 
                 // ACK was received, so clear
@@ -118,17 +151,22 @@ public class FragmentLiveControlLamp extends Fragment {
                 final int iRed = (int)(255 * red);
                 final int iGreen = (int)(255 * green);
                 final int iBlue = (int)(255 * blue);
-                mSenderActivity.sendSerialString("ledctl pwm ");
-                sleep_ms(10);
-                mSenderActivity.sendSerialString(iRed + " ");
-                sleep_ms(10);
-                mSenderActivity.sendSerialString(iGreen + " ");
-                sleep_ms(10);
-                mSenderActivity.sendSerialString(iBlue + "\r\n");
+                final int colorDeltaThreshold = 20;
+                if (
+                        Math.abs(rLast - iRed)   > colorDeltaThreshold ||
+                        Math.abs(gLast - iGreen) > colorDeltaThreshold ||
+                        Math.abs(bLast - iBlue)  > colorDeltaThreshold ) {
+                    rLast = iRed;
+                    gLast = iGreen;
+                    bLast = iBlue;
+
+                    mSenderActivity.sendSerialString("lctl c " + iRed + " " + iGreen + " " + iBlue + "\r\n");
+                    sleep_ms(40);
+                }
 
                 // Re-add listener after short delay
                 // TODO: DO SOME VALUE DELTA BASED PREVENT OF SENDING CHANGE VIA SERIAL
-                //mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
+                mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
             }
         };
         mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
@@ -139,14 +177,14 @@ public class FragmentLiveControlLamp extends Fragment {
             public void onClick(View v) {
                 String str;
                 if (rainbowState == 0) {
-                    str = "ledctl lsd 50\r\n";
-                    rainbowState = 50;
+                    str = "ledctl rainbow 10\r\n";
+                    rainbowState = 10;
                 }
-                else if (rainbowState == 50) {
-                    str = "ledctl lsd 300\r\n";
-                    rainbowState = 300;
+                else if (rainbowState == 10) {
+                    str = "ledctl rainbow 50\r\n";
+                    rainbowState = 0;
                 } else {
-                    str = "ledctl lsd quit\r\n";
+                    str = "ledctl rainbow quit\r\n";
                     rainbowState = 0;
                 }
                 mSenderActivity.sendSerialString(str);

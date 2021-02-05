@@ -38,14 +38,14 @@
     </LinearLayout>
 
     <com.google.android.material.slider.Slider
-        android:id="@+id/slider"
+        android:id="@+id/live_control_intensity_slider"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:value="50"
-        android:valueFrom="#FFFFFF"
-        android:valueTo="100"
+        android:value="100"
+        android:valueFrom="0"
+        android:valueTo="1000"
         app:thumbColor="@color/colorAccent"
         app:trackColorActive="@color/colorAccent"
         app:trackColorInactive="@color/colorPrimaryDark" />

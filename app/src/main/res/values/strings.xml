@@ -14,6 +14,10 @@
     <string name="unknown_characteristic">Unknown characteristic</string>
     <string name="unknown_service">Unknown service</string>
 
+
+    <string name="connectong_to_lamp">Connecting to Lamp...</string>
+
+
     <!-- Actionbar titles -->
     <string name="title_connect_to_lamp">Connect to Lampine...</string>
     <string name="title_live_control_lamp">Live Control Lamp...</string>
