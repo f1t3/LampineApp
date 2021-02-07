@@ -1,14 +1,44 @@
 <resources>
-    <!-- Base application theme: No action bar, status bar light -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="titleTextColor">@color/colorTextHeadings</item>
-        <item name="android:titleTextStyle">@font/cantarell_bold</item>
-        <item name="android:titleTextColor">@color/colorTextHeadings</item>
-        <item name="android:statusBarColor">@color/colorPrimary</item>
+    <!-- Toolbar background / text color: https://qiita.com/ShinichiroFunatsu/items/938e07d44b032fad7318 -->
+    <style name="AppTheme" parent="@style/Theme.MaterialComponents.DayNight">
+        <!-- Color of status bar -->
+        <item name="android:statusBarColor">@color/colorBackgroundLight</item>
         <item name="android:windowLightStatusBar">true</item>
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorTextHeadings</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <!-- Dialog button font color, button background color -->
+        <item name="colorPrimary">@color/colorAccent3</item>
+        <item name="colorPrimaryDark">@color/colorAccent2</item>
+        <item name="colorSecondary">@color/colorAccent</item>
+        <!-- Switch color -->
+        <item name="colorAccent">@color/colorAccent7</item>
+        <item name="android:colorAccent">@color/colorAccent7</item>
+        <!-- General background color -->
+        <item name="android:background">@color/colorBackgroundLight</item>
+        <!-- General text color for alert dialog titles -->
+        <item name="android:textColorPrimary">@color/colorAccent2</item>
+        <!-- General text color for alert dialog messages -->
+        <item name="android:textColor">@color/colorIconActive</item>
+        <!-- Dot menu, back arrow -->
+        <item name="android:colorControlNormal">@color/colorIconActive</item>
+        <item name="actionBarTheme">@style/AppTheme.ToolbarStyle</item>
+    </style>
+
+    <style name="AppTheme.ToolbarStyle" parent="@style/Widget.MaterialComponents.ActionBar.Solid">
+        <!-- Background color of action bar -->
+        <item name="android:background">@color/colorBackgroundLight</item>
+        <item name="background">@color/colorAccent5</item>
+        <!-- Text color of action bar -->
+        <item name="android:textColorPrimary">@color/colorTextLight</item>
+    </style>
+
+    <style name="AppTheme.AlertDialog" parent="@style/Theme.MaterialComponents.Dialog.Alert">
+        <item name="android:textColorPrimary">@color/colorTextDark</item>
+        <item name="android:textColor">@color/colorTextLight</item>
+    </style>
+
+    <style name="AppTheme.ProgressDialog" parent="@style/Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="android:textColorPrimary">@color/colorTextDark</item>
+        <item name="android:textColor">@color/colorTextLight</item>
+        <item name="colorAccent">@color/colorAccent7</item>
+        <item name="android:colorAccent">@color/colorAccent7</item>
     </style>
 </resources>

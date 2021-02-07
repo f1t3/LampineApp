@@ -33,7 +33,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text="@string/slider_intensity_text"
-            android:textColor="@color/colorTextHeadings"
+            android:textColor="@color/colorTextDark"
             android:textSize="16sp" />
     </LinearLayout>
 
@@ -48,7 +48,7 @@
         android:valueTo="1000"
         app:thumbColor="@color/colorAccent"
         app:trackColorActive="@color/colorAccent"
-        app:trackColorInactive="@color/colorPrimaryDark" />
+        app:trackColorInactive="@color/colorBackgroundDark" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -78,7 +78,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:text="@string/slider_color_text"
-            android:textColor="@color/colorTextHeadings"
+            android:textColor="@color/colorTextLight"
             android:textSize="16sp" />
 
         <Space
@@ -99,18 +99,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/imageView3"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="24dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/spectrum_linear" />
-
         <com.google.android.material.slider.Slider
             android:id="@+id/live_control_color_slider"
             android:layout_width="match_parent"
@@ -118,16 +106,31 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="40dp"
             android:layout_marginEnd="8dp"
+            android:hapticFeedbackEnabled="true"
             android:value="0"
             android:valueFrom="0"
             android:valueTo="360"
+            app:haloColor="@color/colorAccent"
+            app:haloRadius="24dp"
             app:labelBehavior="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/imageView3"
             app:thumbColor="@color/colorIconActive"
-            app:trackColorActive="@color/colorPrimaryDark"
-            app:trackColorInactive="@color/colorPrimaryDark" />
+            app:trackColorActive="@color/colorBackgroundDark"
+            app:trackColorInactive="@color/colorBackgroundDark" />
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="match_parent"
+            android:layout_height="34dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="24dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/spectrum_linear" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/color_slider_indicator_line"
@@ -147,17 +150,5 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1" />
-
-    <Button
-        android:id="@+id/button_rainbow_50"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Rainbow 50ms" />
-
-    <Button
-        android:id="@+id/button_rainbow_200"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Rainbow 200ms" />
 
 </LinearLayout>

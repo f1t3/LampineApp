@@ -11,6 +11,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.btle.LampineBluetoothLeTransmitter;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,10 +55,10 @@ public class FragmentLampConsole extends Fragment {
                         .getText().toString() + "\r" + "\n";
 
                 // Send line
-                mSenderActivity.sendSerialString(line);
+                mSenderActivity.getTransmitter().sendSerialString(line);
 
                 // Add line to list view and scroll to bottom
-                final SerialLine serialLine = new SerialLine(line, true);
+                final SerialLine serialLine = new SerialLine(line, false);
                 mSerialTerminalListViewAdapter.addLine(serialLine);
                 mSerialTerminalListViewAdapter.notifyDataSetChanged();
                 mListView.smoothScrollToPosition(mSerialTerminalListViewAdapter.getCount());
@@ -64,10 +66,10 @@ public class FragmentLampConsole extends Fragment {
         });
 
         // Receive listener
-        mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
+        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LampineBluetoothLeTransmitter.SerialReceiveCallbackFunction() {
             @Override
             public void onSerialDataReceived(String data) {
-                final SerialLine serialLine = new SerialLine(data, false);
+                final SerialLine serialLine = new SerialLine(data, true);
                 mSerialTerminalListViewAdapter.addLine(serialLine);
                 mSerialTerminalListViewAdapter.notifyDataSetChanged();
                 mListView.smoothScrollToPosition(mSerialTerminalListViewAdapter.getCount());
@@ -171,7 +173,10 @@ public class FragmentLampConsole extends Fragment {
         }
 
         public String getSerialMessageWithoutLinefeedAtEnd() {
-            return mSerialMessage.substring(0, mSerialMessage.length() - 2);
+            while (mSerialMessage.endsWith("\n") || mSerialMessage.endsWith("\r") && mSerialMessage.length() > 0) {
+                mSerialMessage = mSerialMessage.substring(0, mSerialMessage.length() - 1);
+            }
+            return mSerialMessage;
         }
 
         public boolean isRxLine() {

@@ -15,7 +15,12 @@
     <string name="unknown_service">Unknown service</string>
 
 
-    <string name="connectong_to_lamp">Connecting to Lamp...</string>
+    <string name="Dialog.WaitForLampConn.title">Connecting to Lamp</string>
+    <string name="Dialog.WaitForLampConn.msg">This might take a few seconds</string>
+
+
+    <string name="lamp_connection_lost">Lost signal to lamp</string>
+    <string name="lamp_connection_lost_msg">Is the lamp too far away from your smartphone?</string>
 
 
     <!-- Actionbar titles -->

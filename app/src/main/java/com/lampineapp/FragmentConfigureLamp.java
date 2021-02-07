@@ -19,6 +19,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.btle.LampineBluetoothLeTransmitter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lampineapp.graphics.ColorGraphView;
 import com.lampineapp.helper.DataHelpers;
@@ -94,7 +95,7 @@ public class FragmentConfigureLamp extends Fragment {
         });
 
         // Receive modes from lamp listener
-        mSenderActivity.setSerialReceiveCallbackFunction(new ActivityLampConnected.SerialReceiveCallbackFunction() {
+        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LampineBluetoothLeTransmitter.SerialReceiveCallbackFunction() {
             @Override
             public void onSerialDataReceived(String data) {
                 // TODO: PARSE CSV CONFIGS.

@@ -7,10 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import android.app.Fragment;
-import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
-import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -29,7 +26,6 @@ public class FragmentLiveControlLamp extends Fragment {
     Slider.OnChangeListener mSliderIntensityOnChangeListener;
 
     TextView mTextViewColorPicker;
-    Button mButtonRainbow50, mButtonRainbow200;
     ActivityLampConnected mSenderActivity;
 
     int rainbowState = 0;
@@ -56,11 +52,11 @@ public class FragmentLiveControlLamp extends Fragment {
                 if (b) {
                     // Colored mode
                     mConstraintLayoutColorPicker.setVisibility(View.VISIBLE);
-                    mSenderActivity.sendSerialString("lctl c 0 0 0\r\n");
+                    mSenderActivity.getTransmitter().sendSerialString("lctl c 0 0 0\r\n");
                 } else {
                     // No colored mode
                     mConstraintLayoutColorPicker.setVisibility(View.GONE);
-                    mSenderActivity.sendSerialString("lctl w 200\r\n");
+                    mSenderActivity.getTransmitter().sendSerialString("lctl w 200\r\n");
 
                 }
             }
@@ -79,7 +75,7 @@ public class FragmentLiveControlLamp extends Fragment {
                 final int intensityDeltaThreshold = 50;
                 if (Math.abs(iIntensityLase - iIntensity) > intensityDeltaThreshold) {
                     iIntensityLase = iIntensity;
-                    mSenderActivity.sendSerialString("lctl w " + iIntensity + "\r\n");
+                    mSenderActivity.getTransmitter().sendSerialString("lctl w " + iIntensity + "\r\n");
                     sleep_ms(40);
                 }
 
@@ -160,7 +156,7 @@ public class FragmentLiveControlLamp extends Fragment {
                     gLast = iGreen;
                     bLast = iBlue;
 
-                    mSenderActivity.sendSerialString("lctl c " + iRed + " " + iGreen + " " + iBlue + "\r\n");
+                    mSenderActivity.getTransmitter().sendSerialString("lctl c " + iRed + " " + iGreen + " " + iBlue + "\r\n");
                     sleep_ms(40);
                 }
 
@@ -170,33 +166,6 @@ public class FragmentLiveControlLamp extends Fragment {
             }
         };
         mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
-
-        // TODO: REMOVE
-        mButtonRainbow50 = v.findViewById(R.id.button_rainbow_50);
-        mButtonRainbow50.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                String str;
-                if (rainbowState == 0) {
-                    str = "ledctl rainbow 10\r\n";
-                    rainbowState = 10;
-                }
-                else if (rainbowState == 10) {
-                    str = "ledctl rainbow 50\r\n";
-                    rainbowState = 0;
-                } else {
-                    str = "ledctl rainbow quit\r\n";
-                    rainbowState = 0;
-                }
-                mSenderActivity.sendSerialString(str);
-            }
-        });
-        mButtonRainbow200 = v.findViewById(R.id.button_rainbow_200);
-        mButtonRainbow200.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                ((ActivityLampConnected)getActivity()).sendSerialString("ledctl help");
-            }
-        });
-
         return v;
     }
 

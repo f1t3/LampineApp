@@ -17,12 +17,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -31,7 +33,7 @@ import java.util.ArrayList;
 public class
 ActivityConnectToLamp extends AppCompatActivity {
 
-    final boolean LIST_ALL_BTLE_DEVICES = false;
+    final boolean LIST_ALL_BTLE_DEVICES = true;
 
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private ListView mListView;
@@ -51,8 +53,10 @@ ActivityConnectToLamp extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connect_to_lamp);
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null)
+        if (actionBar != null) {
             actionBar.setTitle(getString(R.string.title_connect_to_lamp));
+        }
+
 
         mHandler = new Handler();
 
@@ -82,14 +86,14 @@ ActivityConnectToLamp extends AppCompatActivity {
         mListView.setAdapter(mLeDeviceListAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
                 if (device == null)
                     return;
                 final Intent intent = new Intent(mActivity, ActivityLampConnected.class);
                 intent.putExtra(ActivityLampConnected.EXTRAS_DEVICE_NAME, device.getName());
                 intent.putExtra(ActivityLampConnected.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+
                 if (mScanning) {
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                     mScanning = false;
@@ -239,6 +243,8 @@ ActivityConnectToLamp extends AppCompatActivity {
         public void addDevice(BluetoothDevice device) {
             if(!mLeDevices.contains(device)) {
                 mLeDevices.add(device);
+                if (isValidLampineDevice(device)) {
+                }
             }
         }
 
@@ -274,6 +280,8 @@ ActivityConnectToLamp extends AppCompatActivity {
                 viewHolder = new ViewHolder();
                 viewHolder.deviceAddress = (TextView) view.findViewById(R.id.device_address);
                 viewHolder.deviceName = (TextView) view.findViewById(R.id.device_name);
+                viewHolder.deviceIcon = (ImageView) view.findViewById(R.id.device_icon);
+                viewHolder.deviceBorderLineTop = (CardView) view.findViewById((R.id.device_border_line_top));
                 view.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) view.getTag();
@@ -281,12 +289,10 @@ ActivityConnectToLamp extends AppCompatActivity {
 
             BluetoothDevice device = mLeDevices.get(i);
             final String deviceName = device.getName();
-            if (deviceName != null && deviceName.length() > 0)
-                viewHolder.deviceName.setText(deviceName);
-            else
-                viewHolder.deviceName.setText(R.string.unknown_device);
+            viewHolder.deviceName.setText((deviceName != null && deviceName.length() > 0) ? deviceName : getResources().getString(R.string.unknown_device));
             viewHolder.deviceAddress.setText(device.getAddress());
-
+            viewHolder.deviceIcon.setImageDrawable(isValidLampineDevice(device) ? getDrawable(R.drawable.ic_headlight_svgrepo_com_24dp) : getDrawable(R.drawable.ic_help_outline_24dp));
+            viewHolder.deviceBorderLineTop.setVisibility(i == 0 ? View.INVISIBLE : View.VISIBLE);
             return view;
         }
     }
@@ -313,6 +319,8 @@ ActivityConnectToLamp extends AppCompatActivity {
     static class ViewHolder {
         TextView deviceName;
         TextView deviceAddress;
+        ImageView deviceIcon;
+        CardView deviceBorderLineTop;
     }
 
     // Tests weather BTLE device is valid Lampine device
@@ -322,8 +330,7 @@ ActivityConnectToLamp extends AppCompatActivity {
         final String name = device.getName();
         if (name == null)
             return false;
-        if (    name.equals("LampineK10RGB_EVL1") ||
-                name.equals("Lampine-K9RGB-r1")) {
+        if ( name.equals("LampineK10RGB_EVL1") || name.equals("Lampine-K9RGB-r1") || name.equals("JDY-10M") ) {
             return true;
         }
         return false;
