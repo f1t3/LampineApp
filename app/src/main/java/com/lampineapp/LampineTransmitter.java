@@ -1,4 +1,4 @@
-package com.btle;
+package com.lampineapp;
 
 import android.app.Service;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -11,10 +11,12 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.btle.BluetoothLeService;
+import com.btle.SampleGattAttributes;
 import com.lampineapp.ActivityLampConnected;
 import com.lampineapp.R;
 
-public class LampineBluetoothLeTransmitter extends android.content.BroadcastReceiver {
+public class LampineTransmitter extends android.content.BroadcastReceiver {
 
     private final static String TAG = ActivityLampConnected.class.getSimpleName();
     enum ConnectionState {DISCONNECTED, CONNECTED} ConnectionState mConnectionState;
@@ -28,7 +30,7 @@ public class LampineBluetoothLeTransmitter extends android.content.BroadcastRece
     private String mDeviceAddress;
     private String mDeviceName;
 
-    public LampineBluetoothLeTransmitter(String deviceName, String deviceAddress) {
+    public LampineTransmitter(String deviceName, String deviceAddress) {
         mDeviceName = deviceName;
         mDeviceAddress = deviceAddress;
     }

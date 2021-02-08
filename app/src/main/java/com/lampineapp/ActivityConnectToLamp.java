@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,10 +29,14 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.lampineapp.helper.GeneralHelpers;
+
 import java.util.ArrayList;
 
 public class
 ActivityConnectToLamp extends AppCompatActivity {
+
+    private final static String TAG = ActivityConnectToLamp.class.getSimpleName();
 
     final boolean LIST_ALL_BTLE_DEVICES = true;
 
@@ -86,18 +91,17 @@ ActivityConnectToLamp extends AppCompatActivity {
         mListView.setAdapter(mLeDeviceListAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (mScanning) {
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                    mScanning = false;
+                }
+                final BluetoothDevice device = mLeDeviceListAdapter.getDevice(i);
                 if (device == null)
                     return;
                 final Intent intent = new Intent(mActivity, ActivityLampConnected.class);
                 intent.putExtra(ActivityLampConnected.EXTRAS_DEVICE_NAME, device.getName());
                 intent.putExtra(ActivityLampConnected.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-
-                if (mScanning) {
-                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                    mScanning = false;
-                }
                 startActivity(intent);
             }
         });
@@ -272,56 +276,45 @@ ActivityConnectToLamp extends AppCompatActivity {
         }
 
         @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
-            ViewHolder viewHolder;
-            // General ListView optimization code.
-            if (view == null) {
-                view = mInflator.inflate(R.layout.activity_connect_to_lamp_listitem, null);
-                viewHolder = new ViewHolder();
-                viewHolder.deviceAddress = (TextView) view.findViewById(R.id.device_address);
-                viewHolder.deviceName = (TextView) view.findViewById(R.id.device_name);
-                viewHolder.deviceIcon = (ImageView) view.findViewById(R.id.device_icon);
-                viewHolder.deviceBorderLineTop = (CardView) view.findViewById((R.id.device_border_line_top));
-                view.setTag(viewHolder);
-            } else {
-                viewHolder = (ViewHolder) view.getTag();
-            }
+        public View getView(int position, View convertView, ViewGroup parent) {
+            // Reuse converted view if existing
+            View v = convertView == null ? mInflator.inflate(R.layout.activity_connect_to_lamp_listitem, parent, false) : convertView;
+            TextView devAddrTextView   = (TextView)  v.findViewById(R.id.device_address);
+            TextView devNameTextView   = (TextView)  v.findViewById(R.id.device_name);
+            ImageView devIconImageView = (ImageView) v.findViewById(R.id.device_icon);
 
-            BluetoothDevice device = mLeDevices.get(i);
+            BluetoothDevice device = mLeDevices.get(position);
             final String deviceName = device.getName();
-            viewHolder.deviceName.setText((deviceName != null && deviceName.length() > 0) ? deviceName : getResources().getString(R.string.unknown_device));
-            viewHolder.deviceAddress.setText(device.getAddress());
-            viewHolder.deviceIcon.setImageDrawable(isValidLampineDevice(device) ? getDrawable(R.drawable.ic_headlight_svgrepo_com_24dp) : getDrawable(R.drawable.ic_help_outline_24dp));
-            viewHolder.deviceBorderLineTop.setVisibility(i == 0 ? View.INVISIBLE : View.VISIBLE);
-            return view;
+            devNameTextView.setText((deviceName != null && deviceName.length() > 0) ? deviceName : getResources().getString(R.string.unknown_device));
+            devAddrTextView.setText(device.getAddress());
+            devIconImageView.setImageDrawable(isValidLampineDevice(device) ? getDrawable(R.drawable.ic_headlight_svgrepo_com_24dp) : getDrawable(R.drawable.ic_help_outline_24dp));
+            return v;
+        }
+
+        @Override
+        public boolean isEnabled(int position)
+        {
+            return true;
         }
     }
 
     // Device scan callback, called once LE device is found. Check if Lampine device and
     // add to list if so.
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-
+    private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+        @Override
+        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+            runOnUiThread(new Runnable() {
                 @Override
-                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (isValidLampineDevice(device) || LIST_ALL_BTLE_DEVICES) {
-                                mLeDeviceListAdapter.addDevice(device);
-                                mLeDeviceListAdapter.notifyDataSetChanged();
-                            }
-                        }
-                    });
+                public void run() {
+                    if (isValidLampineDevice(device) || LIST_ALL_BTLE_DEVICES) {
+                        mLeDeviceListAdapter.addDevice(device);
+                        mLeDeviceListAdapter.notifyDataSetChanged();
+                    }
                 }
-            };
+            });
+        }
+    };
 
-    static class ViewHolder {
-        TextView deviceName;
-        TextView deviceAddress;
-        ImageView deviceIcon;
-        CardView deviceBorderLineTop;
-    }
 
     // Tests weather BTLE device is valid Lampine device
     private boolean isValidLampineDevice(BluetoothDevice device) {

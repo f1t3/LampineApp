@@ -16,7 +16,6 @@
 
 package com.lampineapp;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
@@ -37,7 +36,6 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.btle.BluetoothLeService;
-import com.btle.LampineBluetoothLeTransmitter;
 
 import java.util.ArrayList;
 
@@ -72,7 +70,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 	private FragmentDisplayLampInfo mFragmentDisplayLampInfo = new FragmentDisplayLampInfo();
 	private FragmentLampConsole mFragmentLampConsole = new FragmentLampConsole();
 
-	private LampineBluetoothLeTransmitter mLampineBluetoothLeTransmitter;
+	private LampineTransmitter mLampineBluetoothLeTransmitter;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -202,7 +200,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 		replaceCurrentUiAreaFragment(mFragmentLiveControlLamp);
 
 		// bind
-		mLampineBluetoothLeTransmitter = new LampineBluetoothLeTransmitter(intent.getStringExtra(EXTRAS_DEVICE_NAME), intent.getStringExtra(EXTRAS_DEVICE_ADDRESS));
+		mLampineBluetoothLeTransmitter = new LampineTransmitter(intent.getStringExtra(EXTRAS_DEVICE_NAME), intent.getStringExtra(EXTRAS_DEVICE_ADDRESS));
 		mLampineBluetoothLeTransmitter.connect();
 		Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
 		bindService(gattServiceIntent, mLampineBluetoothLeTransmitter.getServiceConnection(), BIND_AUTO_CREATE);
@@ -293,7 +291,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 		button.setColorFilter(this.getColor(R.color.colorIconActive));
 	}
 
-	protected LampineBluetoothLeTransmitter getTransmitter() {
+	protected LampineTransmitter getTransmitter() {
 		return mLampineBluetoothLeTransmitter;
 	}
 }

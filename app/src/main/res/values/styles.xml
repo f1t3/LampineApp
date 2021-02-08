@@ -12,7 +12,7 @@
         <item name="colorAccent">@color/colorAccent7</item>
         <item name="android:colorAccent">@color/colorAccent7</item>
         <!-- General background color -->
-        <item name="android:background">@color/colorBackgroundLight</item>
+       <!-- <item name="android:background">@color/colorBackgroundLight</item>-->
         <!-- General text color for alert dialog titles -->
         <item name="android:textColorPrimary">@color/colorAccent2</item>
         <!-- General text color for alert dialog messages -->

@@ -8,6 +8,7 @@
     android:orientation="vertical"
     tools:context=".ActivityConnectToLamp">
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -23,9 +24,9 @@
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="16dp"
-            android:layout_weight="1"
-            android:drawSelectorOnTop="true"
-            android:listSelector="#FFFFFF">
+            android:listSelector="@color/colorListViewSelector"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="10.0sp">
         </ListView>
 
         <LinearLayout

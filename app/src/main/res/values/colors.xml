@@ -18,6 +18,10 @@
     <color name="colorTextLight">#1E1E1E</color>
     <color name="colorTextDark">#121212</color>
 
+    <color name="colorListViewSelector">#6D437B94</color>
+
+
+
 
 
 </resources>

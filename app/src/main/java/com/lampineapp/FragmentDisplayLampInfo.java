@@ -7,8 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.btle.LampineBluetoothLeTransmitter;
-
 public class FragmentDisplayLampInfo extends Fragment {
     TextView mTextViewBatteryVoltageValue;
     ActivityLampConnected mSenderActivity;
@@ -33,7 +31,7 @@ public class FragmentDisplayLampInfo extends Fragment {
 
         // Display battery voltage
         mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(
-                new LampineBluetoothLeTransmitter.SerialReceiveCallbackFunction() {
+                new LampineTransmitter.SerialReceiveCallbackFunction() {
             @Override
             public void onSerialDataReceived(String data) {
                 final String batVoltage = data;

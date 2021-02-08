@@ -11,8 +11,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.btle.LampineBluetoothLeTransmitter;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -66,7 +64,7 @@ public class FragmentLampConsole extends Fragment {
         });
 
         // Receive listener
-        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LampineBluetoothLeTransmitter.SerialReceiveCallbackFunction() {
+        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LampineTransmitter.SerialReceiveCallbackFunction() {
             @Override
             public void onSerialDataReceived(String data) {
                 final SerialLine serialLine = new SerialLine(data, true);

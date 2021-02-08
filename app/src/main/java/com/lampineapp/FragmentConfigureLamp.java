@@ -2,34 +2,22 @@ package com.lampineapp;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.btle.LampineBluetoothLeTransmitter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lampineapp.graphics.ColorGraphView;
-import com.lampineapp.helper.DataHelpers;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 
-import static com.lampineapp.helper.DataHelpers.getMaxValue;
 import static com.lampineapp.helper.DataHelpers.parseStringArrayToIntArray;
 
 public class FragmentConfigureLamp extends Fragment {
@@ -95,7 +83,7 @@ public class FragmentConfigureLamp extends Fragment {
         });
 
         // Receive modes from lamp listener
-        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LampineBluetoothLeTransmitter.SerialReceiveCallbackFunction() {
+        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LampineTransmitter.SerialReceiveCallbackFunction() {
             @Override
             public void onSerialDataReceived(String data) {
                 // TODO: PARSE CSV CONFIGS.
