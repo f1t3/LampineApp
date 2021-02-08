@@ -18,6 +18,9 @@ import com.lampineapp.R;
 
 public class LampineTransmitter extends android.content.BroadcastReceiver {
 
+    final int CHECKSUM_BYTES = 4;
+    final int TRAIL_BYTES = 2;
+    final int DATA_BYTES = 14;
     private final static String TAG = ActivityLampConnected.class.getSimpleName();
     enum ConnectionState {DISCONNECTED, CONNECTED} ConnectionState mConnectionState;
     enum ReceiverState { READY_TO_RECEIVE, WAITING_FOR_ACK} ReceiverState mReceiverState;
@@ -80,38 +83,35 @@ public class LampineTransmitter extends android.content.BroadcastReceiver {
     }
 
     private void handleSerialDataRx(String data) {
-
         Log.d(TAG,"Received data: \"" + data + "\"");
         switch (mReceiverState) {
             case READY_TO_RECEIVE:
-                if (data.contains("\r\n")) {
-                    // Send back ACK + data + \r\n
-                    if (data.length() > 2) {
-                        mRxDataBuffer += data.substring(1, data.lastIndexOf('\r') - 1);
+                mRxDataBuffer += data;
+                if (mRxDataBuffer.endsWith("\r\n")) {
+                    if (checkStringAgainstChecksum(mRxDataBuffer)) {
+                        sendSerialString("ACK");
+                        if (mSerialReceiveCallbackFunction != null)
+                            mSerialReceiveCallbackFunction.onSerialDataReceived(mRxDataBuffer);
+                    } else {
+                        sendSerialString("NACK");
                     }
-                    sendSerialString("ACK" + mRxDataBuffer + "\r\n");
-                    mReceiverState = ReceiverState.WAITING_FOR_ACK;
-                } else {
-                    mRxDataBuffer += data;
-                }
-                break;
-            case WAITING_FOR_ACK:
-                mRxAckBuffer += data;
-                if (mRxAckBuffer.contains("ACK\r\n")) {
-                    if (mSerialReceiveCallbackFunction != null) mSerialReceiveCallbackFunction.onSerialDataReceived(mRxDataBuffer);
                     mReceiverState = ReceiverState.READY_TO_RECEIVE;
-                    mRxAckBuffer = "";
                     mRxDataBuffer = "";
                     break;
                 }
-                if (mRxAckBuffer.length() >= 5) {
-                    // No ACK received. Dump old data, assume received data is new resend data
-                    mRxDataBuffer = "";
-                    mRxDataBuffer = mRxAckBuffer;
-                    mRxAckBuffer = "";
-                    mReceiverState = ReceiverState.READY_TO_RECEIVE;
-                    break;
-                }
+        }
+    }
+
+    private boolean checkStringAgainstChecksum(String str) {
+        // Sanity check
+        if (str.length() < 7)
+            return false;
+        String rxStr = str.substring(0, str.length() - CHECKSUM_BYTES - TRAIL_BYTES);
+        String sumStr = str.substring(str.length() - CHECKSUM_BYTES - TRAIL_BYTES, str.length() - TRAIL_BYTES);
+        if (getChecksumFromStringAsString(rxStr).equals(sumStr)) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -162,26 +162,40 @@ public class LampineTransmitter extends android.content.BroadcastReceiver {
     public void sendSerialString(String string) {
         Log.d(TAG, "Sending: " + string);
         String str = string;
-        final int PACK_SIZE = 20;
-        // Transmit in packages of 20, since characteristic cannot exceed 20 bytes
+        final int PACK_SIZE = 14;
+        // Transmit in data packages of 14
         while (str.length() > PACK_SIZE) {
-            // Transmit first 20 chars per iteration
+            // Transmit first 14 chars per iteration
             if (mConnectionState == ConnectionState.CONNECTED) {
-                characteristicTX.setValue(str.substring(0, PACK_SIZE-1).getBytes());
+                String txStr = str.substring(0, PACK_SIZE-1);
+                txStr += getChecksumFromStringAsString(txStr) + "\r\n";
+                characteristicTX.setValue(txStr.getBytes());
                 mBluetoothLeService.writeCharacteristic(characteristicTX);
             } else {
                 return;
             }
             str = str.substring(PACK_SIZE);
+            // Make sure receiver has read message
+            // TODO: WAIT FOR ACK!
             sleep_ms(40);
         }
         // Transmit rest of chars
         if (mConnectionState == ConnectionState.CONNECTED) {
+            str += getChecksumFromStringAsString(str) + "\r\n";
             characteristicTX.setValue(str.getBytes());
             mBluetoothLeService.writeCharacteristic(characteristicTX);
         }	else {
             return;
         }
+    }
+
+    private String getChecksumFromStringAsString(String str) {
+        int sum = 0;
+        for (int i = 0; i < str.length(); i++) {
+            sum += (int)str.charAt(i);
+        }
+        if (sum > 9999) sum = 0;
+        return String.format("%04d", sum);
     }
 
     public interface SerialReceiveCallbackFunction {

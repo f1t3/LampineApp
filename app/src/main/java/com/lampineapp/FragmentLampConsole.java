@@ -49,9 +49,7 @@ public class FragmentLampConsole extends Fragment {
         mButtonSendSerialLine.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final String line = ((TextView)v.findViewById(R.id.serial_terminal_send_input))
-                        .getText().toString() + "\r" + "\n";
-
+                final String line = ((TextView)v.findViewById(R.id.serial_terminal_send_input)).getText().toString();
                 // Send line
                 mSenderActivity.getTransmitter().sendSerialString(line);
 
