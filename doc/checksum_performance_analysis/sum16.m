@@ -2,12 +2,12 @@ close all, clear all
 tic
 
 reset = 0
-Nsim = 1000;
+Nsim = 10000;
 EsN0dB = 0;
 
 WordLen = 16;
 
-EsN0start = 9;
+EsN0start = 8
 EsN0stop  = 10;
 
 ressum.EsN0dB = -200:200;
