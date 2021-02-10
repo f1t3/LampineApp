@@ -1,6 +1,6 @@
 function f = crc16(esnostart, esnostop, nsim)
 
-reset = 0
+reset = 0;
 
 WordLen = 16;
 
@@ -23,7 +23,7 @@ if reset == 1
     rescrc.nsim       = zeros(1,numel(rescrc.esnodb));
     rescrc.nerractual = zeros(1,numel(rescrc.esnodb));
     rescrc.nerrdet     = zeros(1,numel(rescrc.esnodb));
-    rescrc.nerrmissed = zeros(1,numel(rescrc.esnodb));
+    rescrc.nerrmiss = zeros(1,numel(rescrc.esnodb));
     rescrc.nerrfalse  = zeros(1,numel(rescrc.esnodb));
 end
 
@@ -56,7 +56,7 @@ for i = 1:nsim
     eCS = sum(crc) ~= 0;
     nerrdet = nerrdet + eCS;
     % Check if error would be missed
-    nerrmissed = nerrmissed + (eCS < e);
+    nerrmiss = nerrmiss + (eCS < e);
     % Check if false error
     nerrfalse = nerrfalse   + (eCS > e);
 end

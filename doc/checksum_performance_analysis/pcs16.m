@@ -1,47 +1,36 @@
-close all, clear all
-tic
+function f = pcs16(esnostart, esnostop, nsim)
 
-reset = 0
-Nsim = 100;
-EsN0dB = 0;
+reset = 0;
 
 WordLen = 16;
 
-EsN0start = 8;
-EsN0stop  = 8;
-
-ressum.EsN0dB = -200:200;
-respcs.EsN0dB = -200:200;
-rescrc.EsN0dB = -200:200;
-resflet.EsN0dB = -200:200;
-
-Nword = 0;
-
-for j = EsN0start+201 : 1 : EsN0stop+201
+for j = esnostart+201 : 1 : esnostop+201
     
-EsN0dB = respcs.EsN0dB(j);
+results = loadres('resultspcs16.mat');
+esnodb = results.esnodb(j);
 
 % Derivatives
 Es = 0.5;
-EsN0 = 10^(EsN0dB/10);
+EsN0 = 10^(esnodb/10);
 N0 =  Es/(EsN0);
     
-NErrActual = 0;
-NErrCS = 0;
-NErrMissed = 0;
-NErrFalse = 0;
-
-loadres;
+nerractual = 0;
+nerrdet = 0;
+nerrmiss = 0;
+nerrfalse = 0;
 
 if reset == 1
-    respcs.Nsim               = zeros(1,numel(respcs.EsN0dB));
-    respcs.NErrActual = zeros(1,numel(respcs.EsN0dB));
-    respcs.NErrCS     = zeros(1,numel(respcs.EsN0dB));
-    respcs.NErrMissed = zeros(1,numel(respcs.EsN0dB));
-    respcs.NErrFalse = zeros(1,numel(respcs.EsN0dB));
+    results.esnodb      = zeros(1,numel(results.esnodb));
+    results.nsim        = zeros(1,numel(results.esnodb));
+    results.nerractual  = zeros(1,numel(results.esnodb));
+    results.nerrdet     = zeros(1,numel(results.esnodb));
+    results.nerrmiss    = zeros(1,numel(results.esnodb));
+    results.nerrfalse   = zeros(1,numel(results.esnodb)); 
 end
 
-for i = 1:Nsim
+tic
+
+for i = 1:nsim
     % Generate random word
     x = randi([0,1], WordLen, 8);
     % Generate checksums
@@ -62,36 +51,39 @@ for i = 1:Nsim
     % Check if actual word error occured
     e = sum(sum((y ~= x),2),1);
     e = e > 0;
-    NErrActual = NErrActual + e;
+    nerractual = nerractual + e;
     % Compare CS, check if word error would be detected
     eCS = sum(yCSrx ~= yCS);
     eCS = eCS > 0;
-    NErrCS = NErrCS + eCS;
+    nerrdet = nerrdet + eCS;
     % Check if error would be missed
-    NErrMissed = NErrMissed + (eCS < e);
+    nerrmiss = nerrmiss + (eCS < e);
     % Check if false error
-    NErrFalse = NErrFalse   + (eCS > e);
+    nerrfalse = nerrfalse   + (eCS > e);
 end
 
-storeres('results.mat', respcs, EsN0dB, Nsim, NErrActual, NErrCS, NErrMissed, NErrFalse);
+T = toc;
 
-Nword = Nword + Nsim;
+storeres('resultspcs16', results, esnodb, nsim, nerractual, nerrdet, nerrmiss, nerrfalse)
 
 end
 
-T = toc
-tavgPerWord = T/Nword
+f = T/nsim;
 
-plotres;
+end
 
 function f = calccs(word)
     yCS = 1;
-    ysum = 1;
+    csum = 7;
     for n = 1:numel(word(:,1))
-        ysum = ysum + bin2dec(num2str(word(n,:)));
-        yCS = yCS .* ysum;
-        yCS = dec2bin(yCS,16);
-        yCS = bin2dec(yCS(1:16));
+        worddec = bin2dec(num2str(word(n,:)));
+        csum = csum + worddec;
+        yCS  = mod(yCS + csum, 2.^32);
+        yCS  = dec2bin(yCS,16);
+        yCS  = bin2dec(yCS(1:16));
+        yCS  = mod(yCS .* csum, 2.^32);
+        yCS  = dec2bin(yCS,16);
+        yCS  = bin2dec(yCS(1:16));
     end
     yCS = dec2bin(yCS,16);
     f = yCS(1:16) == '1';

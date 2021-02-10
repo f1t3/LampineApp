@@ -76,13 +76,9 @@ function f = calcflet(word)
     sum1 = 0;
     sum2 = 0;
     for n = 1:numel(word(:,1))
-        sum1 = sum1 + bin2dec(num2str(word(n,:)));
-        sum1 = mod(sum1, 256);
-        sum2 = sum2 + sum1;
-        sum2 = sum2 + mod(sum2, 256);
+        sum1 = mod(sum1 + bin2dec(num2str(word(n,:))), 255);
+        sum2 = mod(sum2 + sum1, 255);
     end
-    sum1 = mod(sum1,256);
-    sum2 = mod(sum2,256);
     flet = '0000000000000000';
     flet(1: 8) = dec2bin(sum1,8);
     flet(9:16) = dec2bin(sum2,8);

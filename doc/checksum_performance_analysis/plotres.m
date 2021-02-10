@@ -15,17 +15,24 @@ nerractual = respcs.nerractual + ressum.nerractual + rescrc.nerractual + resflet
 nsim       = respcs.nsim + ressum.nsim + rescrc.nsim + resflet.nsim;
 
 figure()
-semilogy(esnodb, nerractual./nsim), hold on
-% semilogy(respcs.esnodb, respcs.nerrmiss./respcs.nsim)
-% semilogy(ressum.esnodb, ressum.nerrmiss./ressum.nsim)
-% semilogy(rescrc.esnodb, rescrc.nerrmiss./rescrc.nsim)
-semilogy(esnodb, resflet.nerrmiss./resflet.nsim), hold off
+% Plot undetected error rates
+semilogy(esnodb, nerractual       ./nsim,         '-k' , 'LineWidth',1.25 ), hold on
+semilogy(esnodb, respcs.nerrmiss  ./respcs.nsim,  '-ks', 'LineWidth',1 )
+semilogy(esnodb, ressum.nerrmiss  ./ressum.nsim,  '-ko', 'LineWidth',1 )
+semilogy(esnodb, rescrc.nerrmiss  ./rescrc.nsim,  '-k^', 'LineWidth',1 )
+semilogy(esnodb, resflet.nerrmiss ./resflet.nsim, '-k*', 'LineWidth',1 )
+% Plot false error rates
+% semilogy(esnodb, respcs.nerrfalse  ./respcs.nsim,  ':ks', 'LineWidth',1.5 )
+% semilogy(esnodb, ressum.nerrfalse  ./ressum.nsim,  ':ko', 'LineWidth',1.5 )
+% semilogy(esnodb, rescrc.nerrfalse  ./rescrc.nsim,  ':k^', 'LineWidth',1.5 )
+% semilogy(esnodb, resflet.nerrfalse ./resflet.nsim, ':k*', 'LineWidth',1.5 )
+
 title('Undetected PER')
-xlim([6,12]), grid on, grid minor
+xlim([0,15]), grid on, grid minor
 legend('PER', 'PCS-16','SUM-16','CRC-16','FS-16')
 
 
-% figure()
+figure()
 % subplot(2,2,1)
 % semilogy(respcs.esnodb, respcs.nerractual./respcs.nsim), hold on
 % semilogy(respcs.esnodb, respcs.NErrCS./respcs.nsim)
