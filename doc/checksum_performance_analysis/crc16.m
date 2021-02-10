@@ -1,45 +1,30 @@
-close all, clear all
-tic
+function f = crc16(esnostart, esnostop, nsim)
 
 reset = 0
-Nsim = 100000;
-EsN0dB = 0;
 
 WordLen = 16;
 
-EsN0start = 7;
-EsN0stop  = 9;
-
-ressum.EsN0dB = -200:200;
-respcs.EsN0dB = -200:200;
-rescrc.EsN0dB = -200:200;
-resflet.EsN0dB = -200:200;
-
-Nword = 0;
-
-for j = EsN0start+201 : 1 : EsN0stop+201
-    
-EsN0dB = rescrc.EsN0dB(j);
+for j = esnostart+201 : 1 : esnostop+201
+      
+results = loadres('resultscrc16.mat');
+esnodb = results.esnodb(j);  
 
 % Derivatives
 Es = 0.5;
-EsN0 = 10^(EsN0dB/10);
+EsN0 = 10^(esnodb/10);
 N0 =  Es/(EsN0);
     
-NErrActual = 0;
-NErrCS = 0;
-NErrMissed = 0;
-NErrFalse = 0;
-NErrCRC = 0;
-
-loadres;
+nerractual = 0;
+nerrdet = 0;
+nerrmiss = 0;
+nerrfalse = 0;
 
 if reset == 1
-    rescrc.Nsim       = zeros(1,numel(rescrc.EsN0dB));
-    rescrc.NErrActual = zeros(1,numel(rescrc.EsN0dB));
-    rescrc.NErrCS     = zeros(1,numel(rescrc.EsN0dB));
-    rescrc.NErrMissed = zeros(1,numel(rescrc.EsN0dB));
-    rescrc.NErrFalse = zeros(1,numel(rescrc.EsN0dB));
+    rescrc.nsim       = zeros(1,numel(rescrc.esnodb));
+    rescrc.nerractual = zeros(1,numel(rescrc.esnodb));
+    rescrc.nerrdet     = zeros(1,numel(rescrc.esnodb));
+    rescrc.nerrmissed = zeros(1,numel(rescrc.esnodb));
+    rescrc.nerrfalse  = zeros(1,numel(rescrc.esnodb));
 end
 
 % CRC-8: Ignore highest 1
@@ -47,8 +32,9 @@ end
 %gen  = [1, 0, 1, 0, 1, 1, 1, 0, 1]; % x8 + x7 + x4 + x0
 gen  = [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; % x8 + x7 + x4 + x0
 
+tic 
 
-for i = 1:Nsim
+for i = 1:nsim
     % Generate random word
     x = randi([0,1], 1, WordLen * 8);
     % Generate checksums
@@ -65,32 +51,25 @@ for i = 1:Nsim
     % Check if actual word error occured (only in data!)
     e = sum(sum((y(1:WordLen*8) ~= x(1:WordLen*8)),2),1);
     e = e > 0;
-    NErrActual = NErrActual + e;
+    nerractual = nerractual + e;
     % Check CRC, check if word error would be detected
     eCS = sum(crc) ~= 0;
-    NErrCS = NErrCS + eCS;
+    nerrdet = nerrdet + eCS;
     % Check if error would be missed
-    NErrMissed = NErrMissed + (eCS < e);
+    nerrmissed = nerrmissed + (eCS < e);
     % Check if false error
-    NErrFalse = NErrFalse   + (eCS > e);
+    nerrfalse = nerrfalse   + (eCS > e);
 end
 
-rescrc.Nsim(rescrc.EsN0dB == EsN0dB) = rescrc.Nsim(rescrc.EsN0dB == EsN0dB) + Nsim;
-rescrc.NErrActual(rescrc.EsN0dB == EsN0dB) = rescrc.NErrActual(rescrc.EsN0dB == EsN0dB) + NErrActual;
-rescrc.NErrCS(rescrc.EsN0dB == EsN0dB) = rescrc.NErrCS(rescrc.EsN0dB == EsN0dB) + NErrCS;
-rescrc.NErrMissed(rescrc.EsN0dB == EsN0dB) = rescrc.NErrMissed(rescrc.EsN0dB == EsN0dB) + NErrMissed;
-rescrc.NErrFalse(rescrc.EsN0dB == EsN0dB) = rescrc.NErrFalse(rescrc.EsN0dB == EsN0dB) + NErrFalse;
+T = toc;
 
-save('results.mat','respcs','ressum','rescrc','resflet')
-
-Nword = Nword + Nsim;
+storeres('resultscrc16', results, esnodb, nsim, nerractual, nerrdet, nerrmiss, nerrfalse)
 
 end
 
-T = toc
-tavgPerWord = T/Nword
+f = T/nsim;
 
-plotres;
+end
 
 function f = calccrc(word, gen)
     gentmp = [gen, zeros(1, numel(word)-numel(gen))];

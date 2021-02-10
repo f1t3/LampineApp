@@ -7,7 +7,6 @@ WordLen = 16;
 for j = esnostart+201 : 1 : esnostop+201
     
 results = loadres('resultsflet16.mat');
-
 esnodb = results.esnodb(j);
 
 % Derivatives
