@@ -2,13 +2,13 @@ close all, clear all
 tic
 
 reset = 0
-Nsim = 1000;
+Nsim = 100;
 EsN0dB = 0;
 
 WordLen = 16;
 
-EsN0start = 5;
-EsN0stop  = 14;
+EsN0start = 8;
+EsN0stop  = 8;
 
 ressum.EsN0dB = -200:200;
 respcs.EsN0dB = -200:200;
@@ -73,13 +73,7 @@ for i = 1:Nsim
     NErrFalse = NErrFalse   + (eCS > e);
 end
 
-respcs.Nsim(respcs.EsN0dB == EsN0dB) = respcs.Nsim(respcs.EsN0dB == EsN0dB) + Nsim;
-respcs.NErrActual(respcs.EsN0dB == EsN0dB) = respcs.NErrActual(respcs.EsN0dB == EsN0dB) + NErrActual;
-respcs.NErrCS(respcs.EsN0dB == EsN0dB) = respcs.NErrCS(respcs.EsN0dB == EsN0dB) + NErrCS;
-respcs.NErrMissed(respcs.EsN0dB == EsN0dB) = respcs.NErrMissed(respcs.EsN0dB == EsN0dB) + NErrMissed;
-respcs.NErrFalse(respcs.EsN0dB == EsN0dB) = respcs.NErrFalse(respcs.EsN0dB == EsN0dB) + NErrFalse;
-
-save('results.mat','respcs','ressum','rescrc','resflet')
+storeres('results.mat', respcs, EsN0dB, Nsim, NErrActual, NErrCS, NErrMissed, NErrFalse);
 
 Nword = Nword + Nsim;
 

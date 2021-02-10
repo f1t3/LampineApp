@@ -1,24 +1,30 @@
-respcs.Nsim       = zeros(1,numel(respcs.EsN0dB));
-respcs.NErrActual = zeros(1,numel(respcs.EsN0dB));
-respcs.NErrCS     = zeros(1,numel(respcs.EsN0dB));
-respcs.NErrMissed = zeros(1,numel(respcs.EsN0dB));
-respcs.NErrFalse  = zeros(1,numel(respcs.EsN0dB));
-ressum.Nsim        = zeros(1,numel(respcs.EsN0dB));
-ressum.NErrActual  = zeros(1,numel(respcs.EsN0dB));
-ressum.NErrCS      = zeros(1,numel(respcs.EsN0dB));
-ressum.NErrMissed  = zeros(1,numel(respcs.EsN0dB));
-ressum.NErrFalse   = zeros(1,numel(respcs.EsN0dB));
-rescrc.Nsim       = zeros(1,numel(rescrc.EsN0dB));
-rescrc.NErrActual = zeros(1,numel(rescrc.EsN0dB));
-rescrc.NErrCS     = zeros(1,numel(rescrc.EsN0dB));
-rescrc.NErrMissed = zeros(1,numel(rescrc.EsN0dB));
-rescrc.NErrFalse  = zeros(1,numel(rescrc.EsN0dB));
-resflet.Nsim       = zeros(1,numel(resflet.EsN0dB));
-resflet.NErrActual = zeros(1,numel(resflet.EsN0dB));
-resflet.NErrCS     = zeros(1,numel(resflet.EsN0dB));
-resflet.NErrMissed = zeros(1,numel(resflet.EsN0dB));
-resflet.NErrFalse  = zeros(1,numel(resflet.EsN0dB));
+function f = loadres(filename)
 
-if exist('results.mat', 'file') == 2
-    load('results.mat','respcs','ressum','rescrc','resflet')
+res.esnodb      = -200:200;
+res.nsim        = zeros(1,numel(res.esnodb));
+res.nerractual  = zeros(1,numel(res.esnodb));
+res.nerrdet     = zeros(1,numel(res.esnodb));
+res.nerrmiss    = zeros(1,numel(res.esnodb));
+res.nerrfalse   = zeros(1,numel(res.esnodb));
+
+if exist(filename, 'file') == 2
+    load(filename,'esnodb','nsim','nerractual','nerrdet','nerrmiss','nerrfalse');
+    res.esnodb     = res.esnodb;
+    res.nsim       = nsim;
+    res.nerractual = nerractual;
+    res.nerrdet     = nerrdet;
+    res.nerrmiss = nerrmiss;
+    res.nerrfalse  = nerrfalse;
+else
+    nsim       = res.esnodb;
+    esnodb     = res.esnodb;
+    nerractual = res.nerractual;
+    nerrdet    = res.nerrdet;
+    nerrmiss   = res.nerrmiss;
+    nerrfalse  = res.nerrfalse;
+    save(filename,'esnodb','nsim','nerractual','nerrdet','nerrmiss','nerrfalse');
+end
+
+f = res;
+
 end

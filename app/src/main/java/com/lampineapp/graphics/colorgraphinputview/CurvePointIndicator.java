@@ -17,7 +17,7 @@ public class CurvePointIndicator {
     protected float TEXT_SIZE = 40;
     protected int TEXT_COLOR = Color.WHITE;
     protected String LABEL = "0";
-    protected float CATCH_RADIUS = 20;
+    protected float CATCH_RADIUS = 30;
     
     // Members
     private Paint mMovIndPaint = new Paint();

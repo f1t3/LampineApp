@@ -29,16 +29,16 @@ public class ColorGraphInputView extends View {
         S_START_INDICATOR_MOVING,
         S_STOP_INDICATOR_CATCHED,
         S_GRAPH_DRAWING,
+        S_CURSOR_ON_STOP_IND,
         S_GRAPH_COMPLETE
-    }
-    State mState;
+    } State mState = State.S_GRAPH_EMPTY;
 
     private GestureDetectorCompat mGestureDetector;
     private GestureListener mGestureListener;
     private CurvePointIndicator mStartInd = new CurvePointIndicator("1");
     private CurvePointIndicator mStopInd = new CurvePointIndicator("2");
     private CurvePositionIndicator mPosInd = new CurvePositionIndicator();
-    private ColorGraph mColorGraph = new ColorGraph();
+    private ColorGraph mColorGraph;
     private static CurveCompleteCallbackFun mCurveCompleteCallbackFun;
 
     // Working variables
@@ -61,7 +61,6 @@ public class ColorGraphInputView extends View {
 
         mGestureListener = new GestureListener(this);
         mGestureDetector = new GestureDetectorCompat(context, mGestureListener);
-        mState = State.S_GRAPH_EMPTY;
     }
 
     public void setCurveCompleteCallbackFun(CurveCompleteCallbackFun fun) {
@@ -153,17 +152,6 @@ public class ColorGraphInputView extends View {
         y = InputFrame.cutY(y);
 
         switch (mState) {
-            case S_CURSOR_ON_START_IND:
-                // Cursor is moving
-                // TODO: TOLERANCE??????
-                if (!Helpers.isInsideRadius(x, y, mX, mY, 10)) {
-                    mState = State.S_GRAPH_DRAWING;
-                    // TODO: MOVE TO POSITION WHERE NOT 100 OBJECTS ARE CREATED!
-                    mColorGraph = new ColorGraph();
-                    //mColorCurve.clear();
-                    break;
-                } 
-                break; 
             case S_START_INDICATOR_CATCHED:
                 InputFrame.clearFrame();
                 mStartInd.Y = y;
@@ -172,10 +160,29 @@ public class ColorGraphInputView extends View {
                 InputFrame.clearFrame();
                 mStopInd.Y = y;
                 break;
+            case S_CURSOR_ON_START_IND:
+                if (!mStartInd.isOnCatchArea(x, y)) {
+                    // Cursor is moving
+                    mPosInd.show();
+                    mState = State.S_GRAPH_DRAWING;
+                    mColorGraph = new ColorGraph(mX, mY, x, y);
+                    this.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_PRESS);
+                    break;
+                } 
+                break;
             case S_GRAPH_DRAWING:
                 mColorGraph.addSegment(x, y);
                 mPosInd.setPos(x, y);
+                if (mStopInd.isOnCatchArea(x, y)) {
+                    // Stop indicator reached
+                    mState = State.S_CURSOR_ON_STOP_IND;
+                    this.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_PRESS);
+                }
+
                 break;
+            case S_CURSOR_ON_STOP_IND:
+                mColorGraph.finish(x,y);
+                mPosInd.hide();
         }
     }
 

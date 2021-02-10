@@ -10,12 +10,19 @@ public class ColorTimeSeries {
      */
     private ArrayList<Integer> mColorValues = new ArrayList<>();
     private ArrayList<Float> mRelativeTimestamp = new ArrayList<>();
+    private int mPeriod_ms = 0;
 
     /***********************************************************************************************
      *
      * Public Methods
      */
     public int size() { return mColorValues.size(); }
+
+    public String getCurveJson() {
+        String ret = "nPoints=" + mColorValues.size() + ";";
+        ret += "rVals"
+
+    }
 
     /***********************************************************************************************
      *
@@ -41,5 +48,9 @@ public class ColorTimeSeries {
         }
         // Time not advancing
         return false;
+    }
+
+    protected void setPeriod_ms(int period) {
+        mPeriod_ms = period;
     }
 }

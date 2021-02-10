@@ -22,6 +22,7 @@ public class CurvePositionIndicator {
 
     private Paint mIndPaint = new Paint();
     private Paint mIndLinePaint = new Paint();
+    private boolean mVisible = false;
 
     /***********************************************************************************************
      *
@@ -42,7 +43,8 @@ public class CurvePositionIndicator {
     }
 
     protected void draw(Canvas canvas) {
-
+        if (!mVisible)
+            return;
         // Draw vertical and horizontal lines
         mIndLinePaint.setStrokeWidth(IND_LINE_W);
         mIndLinePaint.setColor(IND_COLOR);
@@ -52,5 +54,13 @@ public class CurvePositionIndicator {
         // Draw circle
         mIndPaint.setColor(IND_COLOR);
         canvas.drawCircle(X, Y, RADIUS, mIndPaint);
+    }
+
+    protected void hide() {
+        mVisible = false;
+    }
+
+    protected void show() {
+        mVisible = true;
     }
 }
