@@ -28,7 +28,7 @@ semilogy(esnodb, resflet.nerrmiss ./resflet.nsim, '-k*', 'LineWidth',1 )
 % semilogy(esnodb, resflet.nerrfalse ./resflet.nsim, ':k*', 'LineWidth',1.5 )
 
 title('Undetected PER')
-xlim([0,15]), grid on, grid minor
+xlim([5,12]), grid on, grid minor
 legend('PER', 'PCS-16','SUM-16','CRC-16','FS-16')
 
 
