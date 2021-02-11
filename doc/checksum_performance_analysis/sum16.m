@@ -73,12 +73,14 @@ f = T/nsim;
 end
 
 function f = calccs(word)
-    yCS = 0;
-    ysum = 0;
+    sum1 = 0;
+    sum2 = 0;
     for n = 1:numel(word(:,1))
-        ysum = ysum + bin2dec(num2str(word(n,:)));
-        ysum = mod(ysum,65536);
+        sum1 = mod(sum1 + sum2 + bin2dec(num2str(word(n,:))), 255);
+        sum2 = mod(sum2 + sum1, 255);
     end
-    yCS = dec2bin(ysum,16);
-    f = yCS(1:16) == '1';
+    flet = '0000000000000000';
+    flet(1: 8) = dec2bin(sum1,8);
+    flet(9:16) = dec2bin(sum2,8);
+    f = flet == '1';
 end
