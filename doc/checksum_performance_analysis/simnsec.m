@@ -6,7 +6,14 @@ function f = simnsec(sumtype, esnostart, esnostop, tsim)
         fletcher16(esnostart, esnostop, nsim);
         plotres;
     end
-  
+    
+    if contains(sumtype, 'advflet')
+        tword = advflet16(0, 0, 1000);
+        nsim = floor(tsim./tword/((esnostop-esnostart)+1));
+        advflet16(esnostart, esnostop, nsim);
+        plotres;
+    end
+    
     if contains(sumtype, 'crc')
         tword = crc16(0, 0, 1000);
         nsim = floor(tsim./tword/((esnostop-esnostart)+1));

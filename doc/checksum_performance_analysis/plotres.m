@@ -4,6 +4,7 @@ close all;
 EsN0start = 5;
 EsN0stop  = 15;
 
+resadvflet = loadres('resultsadvflet16.mat');
 resflet = loadres('resultsflet16.mat');
 ressum  = loadres('resultssum16.mat');
 rescrc  = loadres('resultscrc16.mat');
@@ -11,16 +12,18 @@ respcs  = loadres('resultspcs16.mat');
 
 esnodb = -200:1:200;
 
-nerractual = respcs.nerractual + ressum.nerractual + rescrc.nerractual + resflet.nerractual;
-nsim       = respcs.nsim + ressum.nsim + rescrc.nsim + resflet.nsim;
+nerractual = respcs.nerractual + ressum.nerractual + rescrc.nerractual + resflet.nerractual + resadvflet.nerractual;
+nsim       = respcs.nsim + ressum.nsim + rescrc.nsim + resflet.nsim + resadvflet.nsim;
 
 figure()
 % Plot undetected error rates
-semilogy(esnodb, nerractual       ./nsim,         '-k' , 'LineWidth',1.25 ), hold on
-semilogy(esnodb, respcs.nerrmiss  ./respcs.nsim,  '-ks', 'LineWidth',1 )
-semilogy(esnodb, ressum.nerrmiss  ./ressum.nsim,  '-ko', 'LineWidth',1 )
-semilogy(esnodb, rescrc.nerrmiss  ./rescrc.nsim,  '-k^', 'LineWidth',1 )
-semilogy(esnodb, resflet.nerrmiss ./resflet.nsim, '-k*', 'LineWidth',1 )
+semilogy(esnodb, nerractual       ./nsim,               '-k' , 'LineWidth',1.25 ), hold on
+semilogy(esnodb, respcs.nerrmiss  ./respcs.nsim,        '-ks', 'LineWidth',1 )
+semilogy(esnodb, ressum.nerrmiss  ./ressum.nsim,        '-ko', 'LineWidth',1 )
+semilogy(esnodb, rescrc.nerrmiss  ./rescrc.nsim,        '-k*', 'LineWidth',1 )
+semilogy(esnodb, resflet.nerrmiss ./resflet.nsim,       '-k^', 'LineWidth',1 )
+semilogy(esnodb, resadvflet.nerrmiss ./resadvflet.nsim, '-kv', 'LineWidth',1 )
+
 % Plot false error rates
 % semilogy(esnodb, respcs.nerrfalse  ./respcs.nsim,  ':ks', 'LineWidth',1.5 )
 % semilogy(esnodb, ressum.nerrfalse  ./ressum.nsim,  ':ko', 'LineWidth',1.5 )
