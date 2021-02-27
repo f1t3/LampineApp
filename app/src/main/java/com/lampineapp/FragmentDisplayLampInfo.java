@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.lampineapp.lsms.layer1.LLayer1ServiceProvider;
+
 public class FragmentDisplayLampInfo extends Fragment {
     TextView mTextViewBatteryVoltageValue;
     ActivityLampConnected mSenderActivity;
@@ -29,16 +31,17 @@ public class FragmentDisplayLampInfo extends Fragment {
     public void onResume() {
         super.onResume();
 
+// TODO
         // Display battery voltage
-        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(
-                new LampineTransmitter.SerialReceiveCallbackFunction() {
-            @Override
-            public void onSerialDataReceived(String data) {
-                final String batVoltage = data;
-                mTextViewBatteryVoltageValue.setText("Battery volatage: " + batVoltage + "mV");
-            }
-        });
-        mSenderActivity.getTransmitter().sendSerialString("sysctl print vbat\r\n");
+//        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(
+//                new LLayer1ServiceProvider.SerialReceiveCallbackFunction() {
+//            @Override
+//            public void onSerialDataReceived(String data) {
+//                final String batVoltage = data;
+//                mTextViewBatteryVoltageValue.setText("Battery volatage: " + batVoltage + "mV");
+//            }
+//        });
+//        mSenderActivity.getTransmitter().sendSerialString("sysctl print vbat\r\n");
     }
 
     // TODO: MOVE TO HELPER

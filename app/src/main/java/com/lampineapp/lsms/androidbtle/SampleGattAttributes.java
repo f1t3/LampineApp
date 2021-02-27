@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.btle;
+package com.lampineapp.lsms.androidbtle;
 
 import java.util.HashMap;
 

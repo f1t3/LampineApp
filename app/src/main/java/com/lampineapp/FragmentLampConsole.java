@@ -11,26 +11,28 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.lampineapp.lsms.LSMStack;
+import com.lampineapp.lsms.layer1.LLayer1ServiceProvider;
+
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 public class FragmentLampConsole extends Fragment {
 
-    ActivityLampConnected mSenderActivity;
     ListView mListView;
     ImageButton mButtonSendSerialLine;
     SerialTerminalListViewAdapter mSerialTerminalListViewAdapter;
 
+    LSMStack mLSMStack;
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-        // Save parent activity through wich BT commands are send
-        mSenderActivity = ((ActivityLampConnected)getActivity());
-
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         final View v =  inflater.inflate(R.layout.fragment_serial_terminal, container, false);
+
+        mLSMStack = ((ActivityLampConnected)getActivity()).getLSMStack();
 
         // List view
         mSerialTerminalListViewAdapter = new SerialTerminalListViewAdapter();
@@ -51,7 +53,7 @@ public class FragmentLampConsole extends Fragment {
             public void onClick(View view) {
                 final String line = ((TextView)v.findViewById(R.id.serial_terminal_send_input)).getText().toString();
                 // Send line
-                mSenderActivity.getTransmitter().sendSerialString(line);
+                mLSMStack.send(line);
 
                 // Add line to list view and scroll to bottom
                 final SerialLine serialLine = new SerialLine(line, false);
@@ -62,16 +64,15 @@ public class FragmentLampConsole extends Fragment {
         });
 
         // Receive listener
-        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LampineTransmitter.SerialReceiveCallbackFunction() {
+        mLSMStack.setOnReceiveListener(new LSMStack.ReceiveListener() {
             @Override
-            public void onSerialDataReceived(String data) {
-                final SerialLine serialLine = new SerialLine(data, true);
+            public void onReceive(byte[] data) {
+                final SerialLine serialLine = new SerialLine(new String(data, StandardCharsets.US_ASCII), true);
                 mSerialTerminalListViewAdapter.addLine(serialLine);
                 mSerialTerminalListViewAdapter.notifyDataSetChanged();
                 mListView.smoothScrollToPosition(mSerialTerminalListViewAdapter.getCount());
             }
         });
-
         return v;
     }
 
@@ -84,7 +85,7 @@ public class FragmentLampConsole extends Fragment {
             super();
             mSerialLinesArrayList = new ArrayList<SerialLine>();
             // TODO: IS THIS CORRECT??
-            mInflater = mSenderActivity.getLayoutInflater();
+            mInflater = getActivity().getLayoutInflater();
         }
 
         public void addLine(SerialLine serialLine) {

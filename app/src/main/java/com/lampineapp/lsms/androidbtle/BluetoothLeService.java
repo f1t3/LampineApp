@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.btle;
+package com.lampineapp.lsms.androidbtle;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -24,7 +24,6 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothHealthCallback;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
@@ -151,8 +150,7 @@ public class BluetoothLeService extends Service {
                 for(byte byteChar : data)
                     stringBuilder.append(String.format("%02X ", byteChar));
                 // TODO: CHECK!!!
-                //intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
-                intent.putExtra(EXTRA_DATA, new String(data));
+                intent.putExtra(EXTRA_DATA, data);
 
             }
         }

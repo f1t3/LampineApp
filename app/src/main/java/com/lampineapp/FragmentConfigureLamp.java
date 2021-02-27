@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lampineapp.graphics.ColorGraphView;
+import com.lampineapp.lsms.layer1.LLayer1ServiceProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,19 +82,19 @@ public class FragmentConfigureLamp extends Fragment {
                 // TODO: IMPLEMENT!
             }
         });
-
-        // Receive modes from lamp listener
-        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LampineTransmitter.SerialReceiveCallbackFunction() {
-            @Override
-            public void onSerialDataReceived(String data) {
-                // TODO: PARSE CSV CONFIGS.
-                LampModeConfigurationItem[] configItemArray = parseLampModeConfigsFromString(data);
-                for (LampModeConfigurationItem configItem : configItemArray) {
-                    mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
-                    mLampModesConfigsListViewAdapter.notifyDataSetChanged();
-                }
-            }
-        });
+// TODO
+//        // Receive modes from lamp listener
+//        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LLayer1ServiceProvider.SerialReceiveCallbackFunction() {
+//            @Override
+//            public void onSerialDataReceived(String data) {
+//                // TODO: PARSE CSV CONFIGS.
+//                LampModeConfigurationItem[] configItemArray = parseLampModeConfigsFromString(data);
+//                for (LampModeConfigurationItem configItem : configItemArray) {
+//                    mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
+//                    mLampModesConfigsListViewAdapter.notifyDataSetChanged();
+//                }
+//            }
+//        });
 
         // Floating action button
         mFab = v.findViewById(R.id.fab_add_config_item);

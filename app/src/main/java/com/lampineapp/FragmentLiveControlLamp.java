@@ -52,11 +52,13 @@ public class FragmentLiveControlLamp extends Fragment {
                 if (b) {
                     // Colored mode
                     mConstraintLayoutColorPicker.setVisibility(View.VISIBLE);
-                    mSenderActivity.getTransmitter().sendSerialString("lctl c 0 0 0\r\n");
+               // TODO
+                    //     mSenderActivity.getTransmitter().sendSerialString("lctl c 0 0 0\r\n");
                 } else {
                     // No colored mode
                     mConstraintLayoutColorPicker.setVisibility(View.GONE);
-                    mSenderActivity.getTransmitter().sendSerialString("lctl w 200\r\n");
+                  // TODO
+                    //  mSenderActivity.getTransmitter().sendSerialString("lctl w 200\r\n");
 
                 }
             }
@@ -75,7 +77,8 @@ public class FragmentLiveControlLamp extends Fragment {
                 final int intensityDeltaThreshold = 50;
                 if (Math.abs(iIntensityLase - iIntensity) > intensityDeltaThreshold) {
                     iIntensityLase = iIntensity;
-                    mSenderActivity.getTransmitter().sendSerialString("lctl w " + iIntensity + "\r\n");
+                   // TODO
+                    //  mSenderActivity.getTransmitter().sendSerialString("lctl w " + iIntensity + "\r\n");
                     sleep_ms(40);
                 }
 
@@ -155,8 +158,8 @@ public class FragmentLiveControlLamp extends Fragment {
                     rLast = iRed;
                     gLast = iGreen;
                     bLast = iBlue;
-
-                    mSenderActivity.getTransmitter().sendSerialString("lctl c " + iRed + " " + iGreen + " " + iBlue + "\r\n");
+// TODO
+                    //mSenderActivity.getTransmitter().sendSerialString("lctl c " + iRed + " " + iGreen + " " + iBlue + "\r\n");
                     sleep_ms(40);
                 }
 
