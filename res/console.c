@@ -9,89 +9,129 @@
 #include <termios.h> // Contains POSIX terminal control definitions
 #include <unistd.h> // write(), read(), close()
 
-int main() {
-  // Open the serial port. Change device path as needed (currently set to an standard FTDI USB-UART cable type device)
-  int serial_port = open("/dev/ttyUSB0", O_RDWR);
+uint16_t calcAdvFletcher(char* data, uint32_t len)
+{
+    uint32_t sum1 = 0;
+    uint32_t sum2 = 0;
+    for (uint32_t i = 0; i < len; i++)
+    {
+        // Modulo 2^16-1
+        sum1 = sum1 + sum2 + data[i];
+        sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
+        sum2 = sum1 + sum2;
+        sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);   
+    }
+    // Modulo 2^8-1
+    sum1 = (sum1 & 0xFF) + (sum1 >> 8);
+    sum2 = (sum2 & 0xFF) + (sum2 >> 8);
+    return (uint16_t) ((sum1 << 8) | (sum2));
 
-  // Create new termios struc, we call it 'tty' for convention
-  struct termios tty;
+}
 
-  // Read in existing settings, and handle any error
-  if(tcgetattr(serial_port, &tty) != 0) {
-      printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
-      return 1;
-  }
+int main(int argc, char *argv[])
+{
 
-  tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
-  tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in communication (most common)
-  tty.c_cflag &= ~CSIZE; // Clear all bits that set the data size 
-  tty.c_cflag |= CS8; // 8 bits per byte (most common)
-  tty.c_cflag &= ~CRTSCTS; // Disable RTS/CTS hardware flow control (most common)
-  tty.c_cflag |= CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
+    
+    if (argc != 2)
+    {
+    	printf("Wrong number of arguments\n");
+        return 0;
+    }
+    
+    char* data = argv[1];
+    uint32_t dataLen = strlen(data);
+    
+    uint8_t msg[256];
+    // Write to serial port
+    msg[0] = 0x02; // SOF
+    msg[1] = 0x04; // SOM
+    msg[2] = 0x01; // TYPE 1
+    for (int i = 0; i < dataLen; i++)
+    {
+        msg[3+i] = data[i];
+    }
+    msg[3+dataLen] = 0x05; // EOM
+    
+    uint16_t sum = calcAdvFletcher(&msg[1], dataLen + 3);
 
-  tty.c_lflag &= ~ICANON;
-  tty.c_lflag &= ~ECHO; // Disable echo
-  tty.c_lflag &= ~ECHOE; // Disable erasure
-  tty.c_lflag &= ~ECHONL; // Disable new-line echo
-  tty.c_lflag &= ~ISIG; // Disable interpretation of INTR, QUIT and SUSP
-  tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
-  tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); // Disable any special handling of received bytes
+    msg[4+dataLen] = (uint8_t)(sum >> 8); // CS 1
+    msg[5+dataLen] = (uint8_t)(sum);     // CS 2
+    msg[6+dataLen]= 0x03; // EOF
+    
+    
+    printf("CS of String <%s> is: %d\n", argv[1], sum);
+    
+    // Open the serial port. Change device path as needed (currently set to an standard FTDI USB-UART cable type device)
+    int serial_port = open("/dev/ttyUSB0", O_RDWR);
 
-  tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
-  tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
-  // tty.c_oflag &= ~OXTABS; // Prevent conversion of tabs to spaces (NOT PRESENT ON LINUX)
-  // tty.c_oflag &= ~ONOEOT; // Prevent removal of C-d chars (0x004) in output (NOT PRESENT ON LINUX)
+    // Create new termios struc, we call it 'tty' for convention
+    struct termios tty;
 
-  tty.c_cc[VTIME] = 10;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
-  tty.c_cc[VMIN] = 0;
+    // Read in existing settings, and handle any error
+    if(tcgetattr(serial_port, &tty) != 0) {
+        printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+        return 1;
+    }
 
-  // Set in/out baud rate to be 9600
-  cfsetispeed(&tty, B115200);
-  cfsetospeed(&tty, B115200);
+    tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
+    tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in communication (most common)
+    tty.c_cflag &= ~CSIZE; // Clear all bits that set the data size 
+    tty.c_cflag |= CS8; // 8 bits per byte (most common)
+    tty.c_cflag &= ~CRTSCTS; // Disable RTS/CTS hardware flow control (most common)
+    tty.c_cflag |= CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
 
-  // Save tty settings, also checking for error
-  if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
-      printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
-      return 1;
-  }
+    tty.c_lflag &= ~ICANON;
+    tty.c_lflag &= ~ECHO; // Disable echo
+    tty.c_lflag &= ~ECHOE; // Disable erasure
+    tty.c_lflag &= ~ECHONL; // Disable new-line echo
+    tty.c_lflag &= ~ISIG; // Disable interpretation of INTR, QUIT and SUSP
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
+    tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); // Disable any special handling of received bytes
 
-  // Write to serial port
-  uint8_t msg[10] ;
-  msg[0] = 0x02; // SOF
-  msg[1] = 0x04; // SOM
-  msg[2] = 0x01; // TYPE 1
-  msg[3] = 65; // A
-  msg[4] = 66; // B1
-  msg[5] = 67; // C
-  msg[6] = 0x05; // EOM
-  msg[7] = 174; // CS 1
-  msg[8] = 180; // CS 2
-  msg[9]= 0x03; // EOF
-  write(serial_port, msg, 10);
+    tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
+    tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
+    // tty.c_oflag &= ~OXTABS; // Prevent conversion of tabs to spaces (NOT PRESENT ON LINUX)
+    // tty.c_oflag &= ~ONOEOT; // Prevent removal of C-d chars (0x004) in output (NOT PRESENT ON LINUX)
 
-  // Allocate memory for read buffer, set size according to your needs
-  char read_buf [256];
+    tty.c_cc[VTIME] = 10;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
+    tty.c_cc[VMIN] = 0;
 
-  // Normally you wouldn't do this memset() call, but since we will just receive
-  // ASCII data for this example, we'll set everything to 0 so we can
-  // call printf() easily.
-  memset(&read_buf, '\0', sizeof(read_buf));
+    // Set in/out baud rate to be 9600
+    cfsetispeed(&tty, B115200);
+    cfsetospeed(&tty, B115200);
 
-  // Read bytes. The behaviour of read() (e.g. does it block?,
-  // how long does it block for?) depends on the configuration
-  // settings above, specifically VMIN and VTIME
-  int num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
+    // Save tty settings, also checking for error
+    if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
+        printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
+        return 1;
+    }
 
-  // n is the number of bytes read. n may be 0 if no bytes were received, and can also be -1 to signal an error.
-  if (num_bytes < 0) {
-      printf("Error reading: %s", strerror(errno));
-      return 1;
-  }
+    
+    write(serial_port, msg, dataLen + 7);
 
-  // Here we assume we received ASCII data, but you might be sending raw bytes (in that case, don't try and
-  // print it to the screen like this!)
-  printf("Read %i bytes. Received message: %s\n", num_bytes, read_buf);
+    // Allocate memory for read buffer, set size according to your needs
+    char read_buf [256];
 
-  close(serial_port);
-  return 0; // success
+    // Normally you wouldn't do this memset() call, but since we will just receive
+    // ASCII data for this example, we'll set everything to 0 so we can
+    // call printf() easily.
+    memset(&read_buf, '\0', sizeof(read_buf));
+
+    // Read bytes. The behaviour of read() (e.g. does it block?,
+    // how long does it block for?) depends on the configuration
+    // settings above, specifically VMIN and VTIME
+    int num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
+
+    // n is the number of bytes read. n may be 0 if no bytes were received, and can also be -1 to signal an error.
+    if (num_bytes < 0) {
+        printf("Error reading: %s", strerror(errno));
+        return 1;
+    }
+
+    // Here we assume we received ASCII data, but you might be sending raw bytes (in that case, don't try and
+    // print it to the screen like this!)
+    printf("Read %i bytes. Received message: %s\n", num_bytes, read_buf);
+
+    close(serial_port);
+    return 0; // success
 }
