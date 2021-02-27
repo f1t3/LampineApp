@@ -74,13 +74,10 @@ end
 
 function f = calccs(word)
     sum1 = 0;
-    sum2 = 0;
     for n = 1:numel(word(:,1))
-        sum1 = mod(sum1 + sum2 + bin2dec(num2str(word(n,:))), 255);
-        sum2 = mod(sum2 + sum1, 255);
+        sum1 = mod(sum1 + bin2dec(num2str(word(n,:))), 2^16);
     end
     flet = '0000000000000000';
-    flet(1: 8) = dec2bin(sum1,8);
-    flet(9:16) = dec2bin(sum2,8);
+    flet(1: 16) = dec2bin(sum1,16);
     f = flet == '1';
 end
