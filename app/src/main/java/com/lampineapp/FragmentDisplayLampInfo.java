@@ -7,8 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.lampineapp.lsms.layer1.LLayer1ServiceProvider;
-
 public class FragmentDisplayLampInfo extends Fragment {
     TextView mTextViewBatteryVoltageValue;
     ActivityLampConnected mSenderActivity;

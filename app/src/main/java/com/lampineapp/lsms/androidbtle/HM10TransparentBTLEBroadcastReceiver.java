@@ -11,17 +11,14 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.lampineapp.lsms.LSMStack;
-import com.lampineapp.lsms.layer1.LLayer1HardwareInterface;
+import com.lampineapp.lsms.layer1.LMSLayer1HardwareInterface;
 
-import java.nio.charset.StandardCharsets;
-
-public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver implements LLayer1HardwareInterface {
+public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver implements LMSLayer1HardwareInterface {
     private final static String TAG = HM10TransparentBTLEBroadcastReceiver.class.getSimpleName();
 
     private final static int MAX_SYMBOLS_PER_TRANSMISSION = 20;
 
-    private ResponseListener mRespListener;
+    private ReceiveListener mRespListener;
 
     private enum ConnectionState {DISCONNECTED, CONNECTED}
     private ConnectionState mConnectionState;
@@ -54,8 +51,7 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
                 if (mRespListener == null) {
                     Log.e(TAG, "No ResponseListener set");
                 } else {
-                    mRespListener.onResponse(data);
-                    Log.d(TAG, "Received: \"" + new String(data, StandardCharsets.US_ASCII) + "\"");
+                    mRespListener.onReceive(data);
                 }
                 break;
 
@@ -74,7 +70,6 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
 
     @Override
     public void transmit(byte[] data) throws IllegalArgumentException {
-        Log.d(TAG, "Sending: " + new String(data, StandardCharsets.US_ASCII));
         if (data.length > MAX_SYMBOLS_PER_TRANSMISSION) {
             throw new IllegalArgumentException();
         }
@@ -83,7 +78,7 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
     }
 
     @Override
-    public void setOnResponseListener(ResponseListener listener) {
+    public void setOnResponseListener(ReceiveListener listener) {
         mRespListener = listener;
     }
 
@@ -152,13 +147,31 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
         mDeviceAddress = address;
         Intent gattServiceIntent = new Intent(context, BluetoothLeService.class);
         context.bindService(gattServiceIntent, mServiceConnection, context.BIND_AUTO_CREATE);
-        context.registerReceiver(this, makeGattUpdateIntentFilter());
+    }
 
+    public void unbindFromDevice(Context context)
+    {
+        context.unbindService(getServiceConnection());
+    }
+
+    public void registerReceiver(Context context) {
+        context.registerReceiver(this, makeGattUpdateIntentFilter());
+    }
+
+    public void unregisterReceiver(Context context)
+    {
+        context.unregisterReceiver(this);
     }
 
     public void connect() {
         if (mBluetoothLeService != null) {
             mBluetoothLeService.connect(mDeviceAddress);
+        }
+    }
+
+    public void disconnect() {
+        if (mBluetoothLeService != null) {
+            mBluetoothLeService.disconnect();
         }
     }
 

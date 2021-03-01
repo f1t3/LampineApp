@@ -10,24 +10,6 @@
 #include <termios.h> // Contains POSIX terminal control definitions
 #include <unistd.h> // write(), read(), close()
 
-uint16_t calcAdvFletcher(char* data, uint32_t len)
-{
-    uint32_t sum1 = 0;
-    uint32_t sum2 = 0;
-    for (uint32_t i = 0; i < len; i++)
-    {
-        // Modulo 2^16-1
-        sum1 = sum1 + sum2 + data[i];
-        sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
-        sum2 = sum1 + sum2;
-        sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);   
-    }
-    // Modulo 2^8-1
-    sum1 = ((sum1 & 0xFF) + (sum1 >> 8)) & 0xFF;
-    sum2 = ((sum2 & 0xFF) + (sum2 >> 8)) & 0xFF;
-    return (uint16_t) ((sum1 << 8) | (sum2));
-}
-
 #define LMS_SOF  0x02
 #define LMS_EOF  0x03
 #define LMS_ACK  0x06
@@ -42,48 +24,59 @@ uint16_t calcAdvFletcher(char* data, uint32_t len)
 unsigned char tx_buf[256];
 #define TX_BUF_OFFSET 10
 
-static int serial_port;
+static int serial_port = 0;
     
-void writeAckFrame() 
-{
-    char msg[] = {LMS_ACK};
-    write(serial_port, msg, 1);
-}
-
-unsigned char* newMessageType1(char* data, uint32_t len) 
-{
-    char* msg = &tx_buf[TX_BUF_OFFSET];
-    msg[0] = LMS_SOM;
-    msg[1] = LMS_TYPE_SHORT; 
-    for (int i = 0; i < len; i++)
-    {
-        msg[2+i] = data[i];
-    }
-    msg[2+len] = LMS_EOM;
-    return msg;
-}
-
-void writeDataFrames(char* data, uint32_t len) 
-{
-    unsigned char* frame = (unsigned char*)(data - 1);
-    frame[0] = LMS_SOF;
-    uint16_t sum = calcAdvFletcher(data, len);
-    frame[1+len] = (uint8_t)((sum >> 8) & 0xFF);
-    frame[2+len] = (uint8_t)(sum & 0xFF);     
-    frame[3+len] = LMS_EOF; 
-    write(serial_port, frame, len + 4);
-    //printf("Sending: ");
-//     for (int i = 0; i < len+4; i++) 
-//     {
-//         printf("%d ",frame[i]);
-//     }
-    //printf("\n");
-}
-
 uint8_t newInputLength = 0;
-unsigned char input_buf[256];
+char input_buf[256];
+char read_buf[256];
 
-void *myThreadFun1(void *vargp) 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+#include "LMStack.h"
+
+LMSLayer1HwInterface hwi;
+LMSLayer1SAP sapL1;
+LMSLayer2SAP sapL2;
+LMSLayer3SAP sapL3;
+
+// TODO: TO INIT
+LMStack stack = {
+		.hwi = &hwi,
+		.layer1SAP = &sapL1,
+		.layer2SAP = &sapL2,
+		.layer3SAP = &sapL3,
+};
+
+void LMSHWI_transmit(char* data, uint32_t len)
+{
+	write(serial_port, data, len);
+}
+
+extern void LMSHWI_init(LMSLayer1HwInterface* hwi)
+{
+	hwi->mtu = 20;
+}
+
+void LMSHWI_setOnReceiveListener(LMSLayer1HwInterface* sap, void (*onReceive)(char* data, uint32_t len))
+{
+	sap->onReceive = onReceive;
+}
+
+void LMSHWI_receive(LMStack* stack, char* data, uint32_t len)
+{
+	LMSL1_receive(stack, data, len);
+}
+
+void onSerialReceive(char* data, uint32_t len)
+{
+	LMSHWI_receive(&stack, data, len);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void* ReadFromKeyboardThread(void *vargp)
 { 
     while (1) 
     {
@@ -100,28 +93,56 @@ void *myThreadFun1(void *vargp)
         }
         while (newInputLength != 0);
         newInputLength = i;
-        //printf("Input of len %i: %s\n", i, input_buf);
+        printf("Input of len %i: \"%s\"\n", i, input_buf);
     }
 } 
 
-void extractMessageFromFrame (char* frame, uint32_t len)
+void* ReadFromSerialThread(void *vargp)
 {
-    frame = &frame[SOM_POS];
-    frame[len-3] = 0;
-}
+	while (1)
+	{
+		// Read serial
+		if (serial_port != 0)
+		{
+			uint32_t num_bytes;
+	        num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
+	        char* frame = read_buf;
+	        if (num_bytes != 0)
+	        {
+	            switch (read_buf[0])
+	            {
+	            case LMS_ACK:
+	                printf("Received ACK\n");
+	                break;
+	            case LMS_NACK:
+	                printf("Received NACK\n");
+	                break;
+	            default:
+	                printf("Received %i bytes: %s\n", num_bytes, read_buf);
+	                break;
+	            }
+                onSerialReceive(frame, num_bytes);
+	        }
 
-void extractDataFromMessage (char* msg, uint32_t len)
-{
-    msg = &msg[2];
-    msg[len-1] = 0;
+		}
+
+	}
 }
     
+
+
+
+
 int main(int argc, char *argv[])
 {
-    
+
+	LMS_init(&stack);
+
     pthread_t thread_id1; 
-    pthread_create(&thread_id1, NULL, myThreadFun1, NULL); 
-    
+    pthread_t thread_id2;
+    pthread_create(&thread_id1, NULL, ReadFromKeyboardThread, NULL); 
+    pthread_create(&thread_id2, NULL, ReadFromSerialThread, NULL);
+
     //printf("CS of String <%s> is: %d\n", argv[1], sum);
     
     // Open the serial port. Change device path as needed (currently set to an standard FTDI USB-UART cable type device)
@@ -168,19 +189,10 @@ int main(int argc, char *argv[])
         printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
         return 1;
     }
-    
-    char* msg = newMessageType1("ABCD", 4);
-    writeDataFrames(msg, 4+3);
-    
-    sleep(0.2);
 
     // Allocate memory for read buffer, set size according to your needs
     char read_buf [256];
 
-    // Normally you wouldn't do this memset() call, but since we will just receive
-    // ASCII data for this example, we'll set everything to 0 so we can
-    // call printf() easily.
-    memset(&read_buf, '\0', sizeof(read_buf));
 
     // Read bytes. The behaviour of read() (e.g. does it block?,
     // how long does it block for?) depends on the configuration
@@ -188,35 +200,9 @@ int main(int argc, char *argv[])
     int num_bytes = 0;
     while (1) 
     {
-        memset(&read_buf, '\0', sizeof(read_buf));
-        num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
-        char* frame = read_buf;
-        if (num_bytes != 0) 
-        {
-            switch (read_buf[0])
-            {
-            case LMS_ACK:
-                //printf("Received ACK\n");
-                break;
-            case LMS_NACK:
-                //printf("Received NACK\n");
-                break;
-            default:
-                //printf("Read %i bytes: %s\n", num_bytes, read_buf);
-                
-                extractMessageFromFrame(frame, num_bytes);
-                extractDataFromMessage(frame, num_bytes - 4);
-                printf("%s\n", frame);
-                //printf(" (%iB total, %iB data)\n", num_bytes, num_bytes-7);
-                writeAckFrame();
-                break;
-            }
-        }
         if (newInputLength > 0)
         {
-            //printf("Process Input of len %i: %s\n", newInputLength, input_buf);
-            char* msg = newMessageType1(input_buf, newInputLength);
-            writeDataFrames(msg, newInputLength+3);
+            LMS_sendMessageShort(&stack, input_buf, newInputLength);
             newInputLength = 0;
         }
     }

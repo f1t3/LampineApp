@@ -14,7 +14,6 @@ import android.widget.TextView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lampineapp.graphics.ColorGraphView;
-import com.lampineapp.lsms.layer1.LLayer1ServiceProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -2,6 +2,7 @@ package com.lampineapp;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,7 +13,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.lampineapp.lsms.LSMStack;
-import com.lampineapp.lsms.layer1.LLayer1ServiceProvider;
 
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class FragmentLampConsole extends Fragment {
+    private final static String TAG = FragmentLampConsole.class.getSimpleName();
 
     ListView mListView;
     ImageButton mButtonSendSerialLine;
@@ -67,7 +68,9 @@ public class FragmentLampConsole extends Fragment {
         mLSMStack.setOnReceiveListener(new LSMStack.ReceiveListener() {
             @Override
             public void onReceive(byte[] data) {
-                final SerialLine serialLine = new SerialLine(new String(data, StandardCharsets.US_ASCII), true);
+                final String dataStr = new String(data, StandardCharsets.US_ASCII);
+                Log.d(TAG, "Received: " + dataStr);
+                final SerialLine serialLine = new SerialLine(dataStr, true);
                 mSerialTerminalListViewAdapter.addLine(serialLine);
                 mSerialTerminalListViewAdapter.notifyDataSetChanged();
                 mListView.smoothScrollToPosition(mSerialTerminalListViewAdapter.getCount());

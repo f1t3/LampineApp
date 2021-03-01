@@ -62,7 +62,6 @@ ActivityConnectToLamp extends AppCompatActivity {
             actionBar.setTitle(getString(R.string.title_connect_to_lamp));
         }
 
-
         mHandler = new Handler();
 
         // Use this check to determine whether BLE is supported on the device.  Then you can
@@ -314,7 +313,6 @@ ActivityConnectToLamp extends AppCompatActivity {
             });
         }
     };
-
 
     // Tests weather BTLE device is valid Lampine device
     private boolean isValidLampineDevice(BluetoothDevice device) {

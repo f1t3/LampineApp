@@ -90,19 +90,25 @@ public class ActivityLampConnected extends AppCompatActivity {
 		replaceCurrentUiAreaFragment(mFragmentLiveControlLamp);
 
 		// Build connection to lamp
-		final HM10TransparentBTLEBroadcastReceiver mHwInterface = new HM10TransparentBTLEBroadcastReceiver();
+		mHwInterface = new HM10TransparentBTLEBroadcastReceiver();
 		mHwInterface.bindToDevice(this, mDeviceName, mDeviceAddress);
+		mHwInterface.registerReceiver(this);
 		mHwInterface.connect();
 		mLSMStack = new LSMStack(mHwInterface);
 
 		final Handler handler = new Handler();
 		final Runnable r = new Runnable() {
 			public void run() {
+				final int DELAY_MS = 500;
+				if (mHwInterface == null) {
+					handler.postDelayed(this, DELAY_MS);
+					return;
+				}
 				if (!mHwInterface.isConnected()) {
 					mWaitForLampConnectedDialog.show();
 					mHwInterface.connect();
 					reconnectTryCounter++;
-					if (reconnectTryCounter >= 2000 / 200) {
+					if (reconnectTryCounter >= 5000 / DELAY_MS) {
 						Log.d(TAG, "Connection timeout reached, giving up");
 						mWaitForLampConnectedDialog.cancel();
 						mConnectionLostDialog.show();
@@ -110,15 +116,15 @@ public class ActivityLampConnected extends AppCompatActivity {
 						// TODO: Auto reconnect?
 						return;
 					}
-					handler.postDelayed(this, 200);
+					handler.postDelayed(this, DELAY_MS);
 				} else {
 					reconnectTryCounter = 0;
 					mWaitForLampConnectedDialog.hide();
-					handler.postDelayed(this, 200);
+					handler.postDelayed(this, DELAY_MS);
 				}
 			}
 		};
-		handler.postDelayed(r, 200);
+		handler.postDelayed(r, 0);
 	}
 
 	@Override
@@ -129,22 +135,24 @@ public class ActivityLampConnected extends AppCompatActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		//registerReceiver(mLampineBluetoothLeTransmitter, mLampineBluetoothLeTransmitter.makeGattUpdateIntentFilter());
+		mHwInterface.registerReceiver(this);
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		//unregisterReceiver(mLampineBluetoothLeTransmitter);
+		mHwInterface.unregisterReceiver(this);
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		// TODO: Move to hwInterface
-		unbindService(mHwInterface.getServiceConnection());
+		mHwInterface.unbindFromDevice(this);
+		mHwInterface.disconnect();
 		mHwInterface = null;
 		mLSMStack = null;
+		mWaitForLampConnectedDialog.cancel();
+		mConnectionLostDialog.cancel();
 	}
 
 	@Override
