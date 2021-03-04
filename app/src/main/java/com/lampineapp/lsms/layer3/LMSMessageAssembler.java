@@ -2,14 +2,19 @@ package com.lampineapp.lsms.layer3;
 
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 abstract public class LMSMessageAssembler implements LMSMessageRxBuffer {
     private final static String TAG = LMSMessageAssembler.class.getSimpleName();
+    ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
     private String mMessageStr;
 
     @Override
     public void put(byte[] frame) {
         if (beginsWithValidSomAndTypeBytes(frame) && (endsWithEom(frame))) {
+            stream.reset();
             final LMSMessage message = new LMSMessageRx(frame);
             switch (message.getType()) {
                 case TYPE_ACK:
@@ -28,10 +33,16 @@ abstract public class LMSMessageAssembler implements LMSMessageRxBuffer {
         } else if (beginsWithValidSomAndTypeBytes(frame)) {
             // Assume new message
             // TODO: Implement
+            stream.reset();
+            try {stream.write(frame);} catch (IOException e) {};
         } else if (endsWithEom(frame)) {
             // Assume end of message
+            // TODO: USE LEN!
+            try {stream.write(frame);} catch (IOException e) {};
+            byte[] msg = stream.toByteArray();
             // TODO: Implement
-            final LMSMessage message = new LMSMessageRx(frame);
+            final LMSMessage message = new LMSMessageRx(msg);
+            Log.d(TAG, "Received " + msg.length + " bytes");
             switch (message.getType()) {
                 case TYPE_ACK:
                     onACKMessageComplete();
@@ -49,6 +60,7 @@ abstract public class LMSMessageAssembler implements LMSMessageRxBuffer {
         } else {
             // Assume data frame
             // TODO: Implement
+            try {stream.write(frame);} catch (IOException e) {};
         }
     }
 

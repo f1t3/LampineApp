@@ -27,6 +27,8 @@ public class FragmentLampConsole extends Fragment {
     SerialTerminalListViewAdapter mSerialTerminalListViewAdapter;
 
     LSMStack mLSMStack;
+    // TODO: REMOVE
+    String file;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -69,7 +71,7 @@ public class FragmentLampConsole extends Fragment {
             @Override
             public void onReceive(byte[] data) {
                 final String dataStr = new String(data, StandardCharsets.US_ASCII);
-                Log.d(TAG, "Received: " + dataStr);
+                //Log.d(TAG, "Received: " + dataStr);
                 final SerialLine serialLine = new SerialLine(dataStr, true);
                 mSerialTerminalListViewAdapter.addLine(serialLine);
                 mSerialTerminalListViewAdapter.notifyDataSetChanged();

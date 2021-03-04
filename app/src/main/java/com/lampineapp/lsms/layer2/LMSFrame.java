@@ -27,15 +27,18 @@ public abstract class LMSFrame {
     protected static final byte ACK  = 0x06;
     protected static final byte NACK = 0x15;
 
+    private final byte[] mLen = {0x00};
     private final byte[] mData;
     private byte[] mChecksum;
 
     protected LMSFrame(byte[] data) {
+        mLen[0] = (byte) data.length;
         mData = data;
         mChecksum = calcChecksum(data);
     }
 
     protected LMSFrame(byte[] data, byte[] checksum) {
+        mLen[0] = (byte) data.length;
         mData = data;
         mChecksum = checksum;
     }
@@ -51,12 +54,11 @@ public abstract class LMSFrame {
     protected byte[] toBytes() {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         final byte[] sof = {SOF};
-        final byte[] eof = {EOF};
         try {
             stream.write(sof);
+            stream.write(mLen);
             stream.write(mData);
             stream.write(mChecksum);
-            stream.write(eof);
         } catch (IOException e) {};
         return stream.toByteArray();
     }
@@ -95,9 +97,9 @@ public abstract class LMSFrame {
             sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
         }
         // Modulo 255
-        sum1 = (sum1 & 0xFF) + (sum1 >> 8);
-        sum2 = (sum2 & 0xFF) + (sum2 >> 8);
-        final byte[] sum = {(byte)sum1, (byte)sum2};
+        sum1 = ((sum1 & 0xFF) + (sum1 >> 8)) & 0xFF;
+        sum2 = ((sum2 & 0xFF) + (sum2 >> 8)) & 0xFF;
+        final byte[] sum = {(byte) sum1, (byte) sum2};
         return sum;
     }
 }

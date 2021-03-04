@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.app.Fragment;
 
+import com.lampineapp.frag_configure_lamp.FragmentConfigureLampModes;
 import com.lampineapp.graphics.colorgraphinputview.ColorGraphInputView;
 import com.lampineapp.graphics.colorgraphinputview.ColorTimeSeries;
 
@@ -15,7 +16,7 @@ public class FragmentAddLampMode extends Fragment {
     private final static String TAG = FragmentAddLampMode.class.getSimpleName();
 
     ColorGraphInputView mColorGraphInputView;
-    FragmentConfigureLamp mFragmentConfigureLamp;
+    FragmentConfigureLampModes mFragmentConfigureLamp;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

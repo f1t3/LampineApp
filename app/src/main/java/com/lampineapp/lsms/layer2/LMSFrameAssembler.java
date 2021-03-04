@@ -17,8 +17,10 @@ public abstract class LMSFrameAssembler implements LMSFrameRxBuffer {
         } else if (isNACKFrame(bytes)) {
             onNACKFrameComplete();
         } else if (beginsWithSOF(bytes)) {
-            if (hasStreamExceededLen(stream))
+            if (hasStreamExceededLen(stream)) {
+                onDATFrameComplete(null);
                 stream.reset();
+            }
             mFrameLen = getLen(bytes);
             try {stream.write(bytes);} catch (IOException e) {};
         } else {
@@ -28,6 +30,9 @@ public abstract class LMSFrameAssembler implements LMSFrameRxBuffer {
             LMSFrame frame = new LMSFrameRx(stream.toByteArray());
             stream.reset();
             onDATFrameComplete(frame);
+        }
+        if (hasStreamExceededLen(stream)) {
+            stream.reset();
         }
     }
 
@@ -57,6 +62,9 @@ public abstract class LMSFrameAssembler implements LMSFrameRxBuffer {
     }
 
     private boolean hasStreamReachedLen(ByteArrayOutputStream stream) {
+        if (mFrameLen == 0) {
+            return false;
+        }
         if (stream.size() == mFrameLen + LMSFrame.NUM_SOF_BYTES + LMSFrame.NUM_LEN_BYTES + LMSFrame.NUM_CHECKSUM_BYTES) {
             return true;
         }

@@ -19,6 +19,7 @@ package com.lampineapp;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -35,6 +36,7 @@ import android.app.Fragment;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.lampineapp.frag_configure_lamp.FragmentConfigureLampModes;
 import com.lampineapp.lsms.LSMStack;
 import com.lampineapp.lsms.androidbtle.HM10TransparentBTLEBroadcastReceiver;
 
@@ -53,9 +55,6 @@ public class ActivityLampConnected extends AppCompatActivity {
 	private AlertDialog mConnectionLostDialog;
 	private int reconnectTryCounter = 0;
 
-	public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
-	public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
-
 	private ImageButton mButtonLiveControlLamp, mButtonConfigureLamp, mButtonDisplayLampInfo, mButtonLampConsole;
 	private Fragment mCurrentUiAreaFragment, mLastUiAreaFragment;
 	private ActionBar mActionBar;
@@ -65,22 +64,74 @@ public class ActivityLampConnected extends AppCompatActivity {
 
 	// Fragments of activity
 	private FragmentLiveControlLamp mFragmentLiveControlLamp = new FragmentLiveControlLamp();
-	private FragmentConfigureLamp mFragmentConfigureLamp = new FragmentConfigureLamp();
+	private FragmentConfigureLampModes mFragmentConfigureLamp = new FragmentConfigureLampModes();
 	private FragmentDisplayLampInfo mFragmentDisplayLampInfo = new FragmentDisplayLampInfo();
 	private FragmentLampConsole mFragmentLampConsole = new FragmentLampConsole();
+	
+	// Handler
+	final Handler mConnectionRetryHandler = new Handler();
+	final Handler mConnectionPriorityHandler = new Handler();
+
+	// Runner to update connection priority after a short delay after connection is established to decrease connection interval.
+	final Runnable mConnectionPriorityRunner = new Runnable() {
+		public void run() {
+			if (mHwInterface.isConnected()) {
+				boolean succ = mHwInterface.setConnectionPriorityToHigh();
+				Log.d(TAG, "Connection priority high: " + succ);
+			}
+		}
+	};
+
+	// Runnable for retry of connection
+	final Runnable mConnectionRetryRunner = new Runnable() {
+		public void run() {
+			final int DELAY_MS = 500;
+			if (mHwInterface == null) {
+				mConnectionRetryHandler.postDelayed(this, DELAY_MS);
+				return;
+			}
+			if (!mHwInterface.isConnected()) {
+				mWaitForLampConnectedDialog.show();
+				mHwInterface.connect();
+				reconnectTryCounter++;
+				if (reconnectTryCounter >= 8000 / DELAY_MS) {
+					Log.d(TAG, "Connection timeout reached, giving up");
+					mWaitForLampConnectedDialog.cancel();
+					mConnectionLostDialog.show();
+					// Do not post anymore
+					// TODO: Auto reconnect?
+					return;
+				}
+				mConnectionRetryHandler.postDelayed(this, DELAY_MS);
+			} else {
+				if (mWaitForLampConnectedDialog.isShowing()) {
+					// Post multiple times after connection is established to make sure connection priority is switched.
+					for (int i = 1; i < 5; i++) {
+						mConnectionPriorityHandler.postDelayed(mConnectionPriorityRunner, i * 1000);
+					}
+				}
+				mWaitForLampConnectedDialog.hide();
+				reconnectTryCounter = 0;
+				mConnectionRetryHandler.postDelayed(this, DELAY_MS);
+
+			}
+		}
+	};
 
 	private HM10TransparentBTLEBroadcastReceiver mHwInterface;
+	private static BluetoothDevice mDevice;
 	private LSMStack mLSMStack;
-	private String mDeviceName;
-	private String mDeviceAddress;
+
+	protected LSMStack getStack() {
+		return mLSMStack;
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// get selected device's data
 		final Intent intent = getIntent();
-		mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
-		mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
+		mDevice = HM10TransparentBTLEBroadcastReceiver.getDevice();
 
 		// Build GUI and display live control fragment
 		buildGui(savedInstanceState);
@@ -91,40 +142,14 @@ public class ActivityLampConnected extends AppCompatActivity {
 
 		// Build connection to lamp
 		mHwInterface = new HM10TransparentBTLEBroadcastReceiver();
-		mHwInterface.bindToDevice(this, mDeviceName, mDeviceAddress);
+		mHwInterface.bindToDevice(this);
 		mHwInterface.registerReceiver(this);
 		mHwInterface.connect();
 		mLSMStack = new LSMStack(mHwInterface);
+		
+		mConnectionRetryHandler.postDelayed(mConnectionRetryRunner, 10);
 
-		final Handler handler = new Handler();
-		final Runnable r = new Runnable() {
-			public void run() {
-				final int DELAY_MS = 500;
-				if (mHwInterface == null) {
-					handler.postDelayed(this, DELAY_MS);
-					return;
-				}
-				if (!mHwInterface.isConnected()) {
-					mWaitForLampConnectedDialog.show();
-					mHwInterface.connect();
-					reconnectTryCounter++;
-					if (reconnectTryCounter >= 5000 / DELAY_MS) {
-						Log.d(TAG, "Connection timeout reached, giving up");
-						mWaitForLampConnectedDialog.cancel();
-						mConnectionLostDialog.show();
-						// Do not post anymore
-						// TODO: Auto reconnect?
-						return;
-					}
-					handler.postDelayed(this, DELAY_MS);
-				} else {
-					reconnectTryCounter = 0;
-					mWaitForLampConnectedDialog.hide();
-					handler.postDelayed(this, DELAY_MS);
-				}
-			}
-		};
-		handler.postDelayed(r, 0);
+
 	}
 
 	@Override
@@ -149,10 +174,10 @@ public class ActivityLampConnected extends AppCompatActivity {
 		super.onDestroy();
 		mHwInterface.unbindFromDevice(this);
 		mHwInterface.disconnect();
-		mHwInterface = null;
-		mLSMStack = null;
 		mWaitForLampConnectedDialog.cancel();
 		mConnectionLostDialog.cancel();
+		mConnectionPriorityHandler.removeCallbacks(mConnectionPriorityRunner);
+		mConnectionRetryHandler.removeCallbacks(mConnectionRetryRunner);
 	}
 
 	@Override
@@ -212,7 +237,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 		// Setup view
 		setContentView(R.layout.activity_lamp_connected);
 		mActionBar = getSupportActionBar();
-		mActionBar.setTitle(mDeviceName);
+		mActionBar.setTitle(mDevice.getName());
 		//mActionBar.setSubtitle(R.string.title_live_control_lamp);
 		mActionBar.setDisplayHomeAsUpEnabled(true);
 		// Get UI elements, define listeners

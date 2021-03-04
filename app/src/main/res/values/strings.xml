@@ -44,9 +44,12 @@
     <!-- Dialog Messages -->
 
     <!-- Button texts -->
-    <string name="button_white_config">White</string>
-    <string name="button_color_config">Colored</string>
+
     <string name="add_new_config_item">Add new lamp mode</string>
+
+    <!-- Fragment configure lamp -->
+    <string name="frag_conf_lamp_button_white_config">White</string>
+    <string name="frag_conf_lamp_button_color_config">Colored</string>
 
     <string name="permit_location">The Android System requires you to permit location access in order to detect Bluetooth LE devices.\nYou may find this strange and so do we. Thank you Google!</string>
 

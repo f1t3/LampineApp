@@ -68,7 +68,15 @@ public class LSMStack {
         mLayer3Sap.requestTransmit(LMSMessage.MessageType.TYPE_SHORT, dataBytes);
     }
 
+    public boolean isConnected() {
+        return mHwInterface.isConnected();
+    }
+
     public void setOnReceiveListener(ReceiveListener listener) {
         mReceiveListener = listener;
+    }
+
+    public long getReliableInterval_ms() {
+        return mLayer2Sap.getRoundtripTime_ms();
     }
 }

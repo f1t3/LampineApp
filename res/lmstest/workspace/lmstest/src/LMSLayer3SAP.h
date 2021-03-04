@@ -6,7 +6,7 @@
 
 #include "LMStack.h"
 
-#define LMSL3_MAX_LEN_SHORT_MSG			128
+#define LMSL3_MAX_LEN_SHORT_MSG			200000
 
 #define LMSL3_SOM_BYTE 					0x04
 #define LMSL3_EOM_BYTE 					0x05

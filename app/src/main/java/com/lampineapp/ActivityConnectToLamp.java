@@ -30,6 +30,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.lampineapp.helper.GeneralHelpers;
+import com.lampineapp.lsms.androidbtle.HM10TransparentBTLEBroadcastReceiver;
 
 import java.util.ArrayList;
 
@@ -99,8 +100,7 @@ ActivityConnectToLamp extends AppCompatActivity {
                 if (device == null)
                     return;
                 final Intent intent = new Intent(mActivity, ActivityLampConnected.class);
-                intent.putExtra(ActivityLampConnected.EXTRAS_DEVICE_NAME, device.getName());
-                intent.putExtra(ActivityLampConnected.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+                HM10TransparentBTLEBroadcastReceiver.setDevice(device);
                 startActivity(intent);
             }
         });

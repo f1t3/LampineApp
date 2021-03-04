@@ -26,9 +26,9 @@ unsigned char tx_buf[256];
 
 static int serial_port = 0;
     
-uint8_t newInputLength = 0;
-char input_buf[256];
-char read_buf[256];
+uint32_t newInputLength = 0;
+char input_buf[200000];
+char read_buf[1024];
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,30 +49,7 @@ LMStack stack = {
 		.layer3SAP = &sapL3,
 };
 
-void LMSHWI_transmit(char* data, uint32_t len)
-{
-	write(serial_port, data, len);
-}
 
-extern void LMSHWI_init(LMSLayer1HwInterface* hwi)
-{
-	hwi->mtu = 20;
-}
-
-void LMSHWI_setOnReceiveListener(LMSLayer1HwInterface* sap, void (*onReceive)(char* data, uint32_t len))
-{
-	sap->onReceive = onReceive;
-}
-
-void LMSHWI_receive(LMStack* stack, char* data, uint32_t len)
-{
-	LMSL1_receive(stack, data, len);
-}
-
-void onSerialReceive(char* data, uint32_t len)
-{
-	LMSHWI_receive(&stack, data, len);
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -81,11 +58,11 @@ void* ReadFromKeyboardThread(void *vargp)
     while (1) 
     {
         // Read keybord  
-        fgets(input_buf, 256, stdin);
+        fgets(input_buf, 200000, stdin);
         int i;
-        for (i = 0; i < 256; i++) 
+        for (i = 0; i < 200000; i++)
         {
-            if (input_buf[i] < 32 || input_buf[i] > 126) 
+            if (input_buf[i] < 32 || input_buf[i] > 126)
             {
                 input_buf[i] = 0;
                 break;
@@ -93,7 +70,6 @@ void* ReadFromKeyboardThread(void *vargp)
         }
         while (newInputLength != 0);
         newInputLength = i;
-        printf("Input of len %i: \"%s\"\n", i, input_buf);
     }
 } 
 
@@ -109,18 +85,6 @@ void* ReadFromSerialThread(void *vargp)
 	        char* frame = read_buf;
 	        if (num_bytes != 0)
 	        {
-	            switch (read_buf[0])
-	            {
-	            case LMS_ACK:
-	                printf("Received ACK\n");
-	                break;
-	            case LMS_NACK:
-	                printf("Received NACK\n");
-	                break;
-	            default:
-	                printf("Received %i bytes: %s\n", num_bytes, read_buf);
-	                break;
-	            }
                 onSerialReceive(frame, num_bytes);
 	        }
 
@@ -129,19 +93,27 @@ void* ReadFromSerialThread(void *vargp)
 	}
 }
     
-
+void* TimerThread(void *vargp)
+{
+	while (1)
+	{
+		LMS_periodicRunner(&stack, 0);
+		usleep(1000);
+	}
+}
 
 
 
 int main(int argc, char *argv[])
 {
-
 	LMS_init(&stack);
 
     pthread_t thread_id1; 
     pthread_t thread_id2;
+    pthread_t thread_id3;
     pthread_create(&thread_id1, NULL, ReadFromKeyboardThread, NULL); 
     pthread_create(&thread_id2, NULL, ReadFromSerialThread, NULL);
+    pthread_create(&thread_id3, NULL, TimerThread, NULL);
 
     //printf("CS of String <%s> is: %d\n", argv[1], sum);
     

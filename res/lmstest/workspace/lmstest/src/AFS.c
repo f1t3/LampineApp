@@ -14,8 +14,8 @@ uint16_t AFS_calc16bit(char* data, uint32_t len)
         sum2 = (sum2 & 0xFFFF) + (sum2 >> 16);
     }
     // Modulo 2^8-1
-    sum1 = ((sum1 & 0xFF) + (sum1 >> 8));
-    sum2 = ((sum2 & 0xFF) + (sum2 >> 8));
+    sum1 = ((sum1 & 0xFF) + (sum1 >> 8)) & 0xFF;
+    sum2 = ((sum2 & 0xFF) + (sum2 >> 8)) & 0xFF;
     return (uint16_t)((sum1 << 8) | (sum2));
 }
 

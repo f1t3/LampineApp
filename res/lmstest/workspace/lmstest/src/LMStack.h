@@ -22,12 +22,18 @@ typedef struct {
 typedef enum {
 	LMSL2_SSTATE_READY,
 	LMSL2_SSTATE_WAITING_FOR_ACK,
-	LMSL2_SSTATE_WAITING_FOR_RECEIVED_NACK,
+	LMSL2_SSTATE_RECEIVED_ACK,
+	LMSL2_SSTATE_RECEIVED_NACK
 
 } LMSLayer2ServiceState;
 
 typedef struct {
 	uint32_t mtu;
+	char rxBuf[256]; // TODO LEN
+	uint32_t rxBufTargetLen;
+	uint32_t rxBufLen;
+	uint32_t txRetryCounter;
+	uint32_t waitingForAckTimeoutCntr_ms;
 	LMSLayer2ServiceState serviceState;
 } LMSLayer2SAP;
 

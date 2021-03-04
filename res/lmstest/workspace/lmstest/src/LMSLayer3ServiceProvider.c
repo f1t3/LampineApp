@@ -13,6 +13,7 @@ static void assembleLongMessagePreamble(char* buf, uint32_t len);
 static void assembleLongMessagePostamble(char* buf, char* data, uint32_t len);
 static void intToCharArray(char* buf, uint32_t intVal, uint32_t numBytes);
 static void calcChecksumToCharArray(char* buf, char* data, uint32_t len);
+static uint32_t charArrayToInt(char* charArray, uint32_t numBytes);
 
 void LMSL3_transmit(LMStack* stack, LMSLayer3MessageType type, char* data, uint32_t len)
 {
@@ -29,7 +30,10 @@ void LMSL3_transmit(LMStack* stack, LMSLayer3MessageType type, char* data, uint3
 
 void LMSL3_receive(LMStack* stack, char* data, uint32_t len)
 {
-	// TODO: PASS TO UPPER LAYER
+	// TODO: DISASSEMBLE MESSAGE;
+	char* msgDat = &data[LMSL3_POS_DAT_SHORT];
+	uint32_t msgLen = len - LMSL3_NUM_PREAMBLE_BYTES_SHORT - LMSL3_NUM_POSTAMBLE_BYTES_SHORT;
+	LMS_receiveMessage(stack, msgDat, msgLen);
 }
 
 static void transmitShortMessage(LMStack* stack, char* data, uint32_t len)
@@ -108,6 +112,20 @@ static void intToCharArray(char* buf, uint32_t intVal, uint32_t numBytes)
 		bytesLeft--;
 		bytesProcessed++;
 	}
+}
+
+static uint32_t charArrayToInt(char* charArray, uint32_t numBytes)
+{
+	uint32_t intVal;
+	uint32_t bytesProcessed = 0;
+	uint32_t bytesLeft = numBytes;
+	while (bytesLeft > 0)
+	{
+		intVal += charArray[bytesProcessed] << (8*(bytesLeft-1));
+		bytesLeft--;
+		bytesProcessed++;
+	}
+	return intVal;
 }
 
 static void calcChecksumToCharArray(char* buf, char* data, uint32_t len)

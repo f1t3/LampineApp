@@ -1,5 +1,6 @@
 package com.lampineapp.lsms.androidbtle;
 
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -26,18 +27,9 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
     private BluetoothLeService mBluetoothLeService;
     private BluetoothGattCharacteristic characteristicTX;
     private BluetoothGattCharacteristic characteristicRX;
-    private String mDeviceAddress;
-    private String mDeviceName;
+    private static BluetoothDevice mDevice;
 
-    public HM10TransparentBTLEBroadcastReceiver() {
-        mDeviceName = "";
-        mDeviceAddress = "";
-    }
-
-    public HM10TransparentBTLEBroadcastReceiver(String deviceName, String deviceAddress) {
-        mDeviceName = deviceName;
-        mDeviceAddress = deviceAddress;
-    }
+    public HM10TransparentBTLEBroadcastReceiver() {}
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -57,6 +49,8 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
 
             case BluetoothLeService.ACTION_GATT_CONNECTED:
                 mConnectionState = ConnectionState.CONNECTED;
+                boolean succ = setConnectionPriorityToHigh();
+                Log.d(TAG, "Connection priority high: " + succ);
                 break;
 
             case BluetoothLeService.ACTION_GATT_DISCONNECTED:
@@ -69,12 +63,11 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
     }
 
     @Override
-    public void transmit(byte[] data) throws IllegalArgumentException {
-        if (data.length > MAX_SYMBOLS_PER_TRANSMISSION) {
-            throw new IllegalArgumentException();
-        }
-        characteristicTX.setValue(data);
-        mBluetoothLeService.writeCharacteristic(characteristicTX);
+    public void transmit(byte[] data) {
+        try {
+            characteristicTX.setValue(data);
+            mBluetoothLeService.writeCharacteristic(characteristicTX);
+        } catch (Exception e) {};
     }
 
     @Override
@@ -90,7 +83,7 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
     @Override
     public boolean isConnected() {
         if (mBluetoothLeService != null) {
-            return mBluetoothLeService.isConnected(mDeviceAddress);
+            return mBluetoothLeService.isConnected(mDevice);
         }
         return false;
     }
@@ -122,7 +115,7 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
             if (!mBluetoothLeService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
             }
-            mBluetoothLeService.connect(mDeviceAddress);
+            mBluetoothLeService.connect(mDevice);
             //  mConnectionState = ConnectionState.CONNECTED;
         }
 
@@ -141,10 +134,8 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
         return intentFilter;
     }
 
-    public void bindToDevice(Context context, String name, String address)
+    public void bindToDevice(Context context)
     {
-        mDeviceName = name;
-        mDeviceAddress = address;
         Intent gattServiceIntent = new Intent(context, BluetoothLeService.class);
         context.bindService(gattServiceIntent, mServiceConnection, context.BIND_AUTO_CREATE);
     }
@@ -165,7 +156,7 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
 
     public void connect() {
         if (mBluetoothLeService != null) {
-            mBluetoothLeService.connect(mDeviceAddress);
+            mBluetoothLeService.connect(mDevice);
         }
     }
 
@@ -177,6 +168,23 @@ public class HM10TransparentBTLEBroadcastReceiver extends BroadcastReceiver impl
 
     public ServiceConnection getServiceConnection() {
         return mServiceConnection;
+    }
+
+    public boolean setConnectionPriorityToHigh() {
+        if (mBluetoothLeService == null) {
+            return false;
+        }
+        return mBluetoothLeService.setConnectionPriorityToHigh();
+    }
+
+    public static void setDevice(BluetoothDevice device)
+    {
+        mDevice = device;
+    }
+
+    public static BluetoothDevice getDevice()
+    {
+        return mDevice;
     }
 
 
