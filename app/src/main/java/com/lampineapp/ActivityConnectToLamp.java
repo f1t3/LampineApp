@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,11 +24,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.lampineapp.helper.GeneralHelpers;
 import com.lampineapp.lsms.androidbtle.HM10TransparentBTLEBroadcastReceiver;
 
 import java.util.ArrayList;
@@ -235,12 +232,12 @@ ActivityConnectToLamp extends AppCompatActivity {
     // Adapter for holding devices found through scanning.
     private class LeDeviceListAdapter extends BaseAdapter {
         private ArrayList<BluetoothDevice> mLeDevices;
-        private LayoutInflater mInflator;
+        private LayoutInflater mInflater;
 
         public LeDeviceListAdapter() {
             super();
             mLeDevices = new ArrayList<BluetoothDevice>();
-            mInflator = ActivityConnectToLamp.this.getLayoutInflater();
+            mInflater = ActivityConnectToLamp.this.getLayoutInflater();
         }
 
         public void addDevice(BluetoothDevice device) {
@@ -277,12 +274,12 @@ ActivityConnectToLamp extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             // Reuse converted view if existing
-            View v = convertView == null ? mInflator.inflate(R.layout.activity_connect_to_lamp_listitem, parent, false) : convertView;
+            View v = convertView == null ? mInflater.inflate(R.layout.activity_connect_to_lamp_listitem, parent, false) : convertView;
             TextView devAddrTextView   = (TextView)  v.findViewById(R.id.device_address);
             TextView devNameTextView   = (TextView)  v.findViewById(R.id.device_name);
             ImageView devIconImageView = (ImageView) v.findViewById(R.id.device_icon);
 
-            BluetoothDevice device = mLeDevices.get(position);
+            final BluetoothDevice device = mLeDevices.get(position);
             final String deviceName = device.getName();
             devNameTextView.setText((deviceName != null && deviceName.length() > 0) ? deviceName : getResources().getString(R.string.unknown_device));
             devAddrTextView.setText(device.getAddress());

@@ -101,24 +101,17 @@
 
         </LinearLayout>
 
-        <ListView
-            android:id="@+id/list_view_lamp_modes_configs"
+        <LinearLayout
+            android:id="@+id/fragment_config_lamp_mode_fragment_config_area"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp" />
+            android:backgroundTint="@color/colorAccent"
+            android:orientation="vertical">
+
+        </LinearLayout>
+
 
     </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_config_item"
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/add_new_config_item"
-        android:src="@drawable/ic_developer_mode_black_24dp"
-        app:backgroundTint="@color/colorAccent" />
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -6,20 +6,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.lampineapp.ActivityLampConnected;
-import com.lampineapp.FragmentAddLampMode;
+import com.lampineapp.frag_configure_lamp.colorconfig.FragmentConfigureLampModesColor;
+import com.lampineapp.frag_configure_lamp.whiteconfig.FragmentConfigureLampModesWhite;
 import com.lampineapp.R;
 
 public class FragmentConfigureLampModes extends Fragment {
-
-    FloatingActionButton mFab;
-    ActivityLampConnected mSenderActivity;
-    ListView mWhiteLampModesListView;
-    WhiteModesListViewAdapter mLampModesConfigsListViewAdapter;
 
     // Button elements
     private ModeButton mWhiteModeBtn;
@@ -36,39 +28,12 @@ public class FragmentConfigureLampModes extends Fragment {
         // Inflate the layout for this fragment
         final View v = inflater.inflate(R.layout.fragment_configure_lamp, container, false);
 
-        // List view
-        mLampModesConfigsListViewAdapter = new WhiteModesListViewAdapter();
-        mWhiteLampModesListView = v.findViewById(R.id.list_view_lamp_modes_configs);
-        mWhiteLampModesListView.setAdapter(mLampModesConfigsListViewAdapter);
-        mWhiteLampModesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                // TODO: IMPLEMENT!
-            }
-        });
-
         // White modes select button
         mWhiteModeBtn = new ModeButton(getActivity(), v, R.id.frag_lamp_conf_white_btn, R.id.frag_lamp_conf_white_btn_icon, R.id.frag_lamp_conf_white_btn_text, R.id.frag_lamp_conf_white_btn_indicator);
         mWhiteModeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                replaceHighlightedModeButton(mWhiteModeBtn);
-                // TODO: IMPLEMENT!
-                // Request white configuration modes from lamp
-                // mSenderActivity.sendSerialString("confctl print whitemodes\r\n");
-
-                //TODO: REMOVE DUMMY RX
-                // DUMMY RX
-                //                            0|  1|  2|3|       |       |       |
-                final String dummydata = "Mode1,1mA,100,4,0,0,0,0,0,0,0,0,0,0,0,0,255,128,64,32\n";
-                LampModeConfigurationItem[] configItemArray = parseLampModeConfigsFromString(dummydata);
-                for (LampModeConfigurationItem configItem : configItemArray) {
-                    mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
-                    mLampModesConfigsListViewAdapter.notifyDataSetChanged();
-                }
-                // TODO: END OF DUMMY RX
-
+                setState(FragmentState.WHITE_CONFIG);
             }
         });
 
@@ -77,42 +42,11 @@ public class FragmentConfigureLampModes extends Fragment {
         mColorModeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                replaceHighlightedModeButton(mColorModeBtn);
-                // TODO: IMPLEMENT!
-            }
-        });
-
-// TODO
-//        // Receive modes from lamp listener
-//        mSenderActivity.getTransmitter().setSerialReceiveCallbackFunction(new LLayer1ServiceProvider.SerialReceiveCallbackFunction() {
-//            @Override
-//            public void onSerialDataReceived(String data) {
-//                // TODO: PARSE CSV CONFIGS.
-//                LampModeConfigurationItem[] configItemArray = parseLampModeConfigsFromString(data);
-//                for (LampModeConfigurationItem configItem : configItemArray) {
-//                    mLampModesConfigsListViewAdapter.addModeConfigItem(configItem);
-//                    mLampModesConfigsListViewAdapter.notifyDataSetChanged();
-//                }
-//            }
-//        });
-
-        // Floating action button
-        mFab = v.findViewById(R.id.fab_add_config_item);
-        mFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Replace UI with FragmentAddLampMode, add current UI to stack
-                final FragmentAddLampMode fragmentAddLampMode = new FragmentAddLampMode();
-                final FragmentManager fm = mSenderActivity.getFragmentManager();
-                fm.beginTransaction()
-                        .replace(R.id.lamp_connected_ui_fragment_area, fragmentAddLampMode)
-                        .addToBackStack(null)
-                        .commit();
+                setState(FragmentState.COLOR_CONFIG);
             }
         });
 
         setState(FragmentState.WHITE_CONFIG);
-
         return v;
     }
 
@@ -122,9 +56,11 @@ public class FragmentConfigureLampModes extends Fragment {
         {
             case WHITE_CONFIG:
                 replaceHighlightedModeButton(mWhiteModeBtn);
+                replaceCurrentModeConfigFragmentWith(new FragmentConfigureLampModesWhite());
                 break;
             case COLOR_CONFIG:
                 replaceHighlightedModeButton(mColorModeBtn);
+                replaceCurrentModeConfigFragmentWith(new FragmentConfigureLampModesColor());
                 break;
         }
     }
@@ -140,6 +76,15 @@ public class FragmentConfigureLampModes extends Fragment {
         }
     }
 
+    protected void replaceCurrentModeConfigFragmentWith(Fragment fragment) {
+        final FragmentManager fm = getChildFragmentManager();
 
+        // Get and destroy current fragment
+        final Fragment currFragment = fm.findFragmentById(R.id.fragment_config_lamp_mode_fragment_config_area);
+        if (currFragment != null)
+            fm.beginTransaction().remove(currFragment).commit();
 
+        // Replace with new fragment
+        fm.beginTransaction().replace(R.id.fragment_config_lamp_mode_fragment_config_area, fragment).commit();
+    }
 }

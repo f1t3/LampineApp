@@ -51,6 +51,8 @@ import java.util.ArrayList;
 public class ActivityLampConnected extends AppCompatActivity {
 	private final static String TAG = ActivityLampConnected.class.getSimpleName();
 
+	private final static boolean NO_BTLE = true;
+
 	private ProgressDialog mWaitForLampConnectedDialog;
 	private AlertDialog mConnectionLostDialog;
 	private int reconnectTryCounter = 0;
@@ -85,6 +87,10 @@ public class ActivityLampConnected extends AppCompatActivity {
 	// Runnable for retry of connection
 	final Runnable mConnectionRetryRunner = new Runnable() {
 		public void run() {
+			if (NO_BTLE) {
+				mWaitForLampConnectedDialog.hide();
+				return;
+			}
 			final int DELAY_MS = 500;
 			if (mHwInterface == null) {
 				mConnectionRetryHandler.postDelayed(this, DELAY_MS);
@@ -129,6 +135,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		// get selected device's data
 		final Intent intent = getIntent();
 		mDevice = HM10TransparentBTLEBroadcastReceiver.getDevice();

@@ -51,6 +51,13 @@
     <string name="frag_conf_lamp_button_white_config">White</string>
     <string name="frag_conf_lamp_button_color_config">Colored</string>
 
+    <!-- Fragment configure lamp mode white -->
+    <string name="frag_conf_lamp_mode_white_info_at_bottom">You can sort your lamp modes by long press.\nTo select a mode on the lamp single press your lamp\'s switch to scroll through your modes.</string>
+    <string name="frag_conf_lamp_mode_white_listitem_text">Intensity: </string>
+
+
+
+
     <string name="permit_location">The Android System requires you to permit location access in order to detect Bluetooth LE devices.\nYou may find this strange and so do we. Thank you Google!</string>
 
 </resources>

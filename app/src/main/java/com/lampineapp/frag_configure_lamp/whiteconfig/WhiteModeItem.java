@@ -1,13 +1,17 @@
-package com.lampineapp.frag_configure_lamp;
+package com.lampineapp.frag_configure_lamp.whiteconfig;
 
 public class WhiteModeItem {
     private String mName;
-    private String mCurrent;
+    private int mCurrent;
+    private int mPercentage;
     private int mPeriodPerPoint_ms;
     private int mNRgbwPoints;
     private int[] mRPoints, mGPoints, mBPoints, mWPoints;
 
-    public WhiteModeItem() {
+    public WhiteModeItem(String str, int percentage) {
+        mName = str;
+        mPercentage = percentage;
+        mCurrent = (int)(percentage*1.56);
     }
 
     public String getName() {
@@ -18,12 +22,12 @@ public class WhiteModeItem {
         mName = name;
     }
 
-    public String getCurrent() {
-        return mCurrent;
+    public int getPercentage () {
+        return mPercentage;
     }
 
-    public void setCurrent(String current) {
-        mCurrent = current;
+    public int getCurrent() {
+        return mCurrent;
     }
 
     public int getPeriodPerPoint_ms() {

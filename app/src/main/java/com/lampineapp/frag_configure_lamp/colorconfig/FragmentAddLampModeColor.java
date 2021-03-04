@@ -1,4 +1,4 @@
-package com.lampineapp;
+package com.lampineapp.frag_configure_lamp.colorconfig;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -7,13 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.app.Fragment;
 
+import com.lampineapp.R;
 import com.lampineapp.frag_configure_lamp.FragmentConfigureLampModes;
 import com.lampineapp.graphics.colorgraphinputview.ColorGraphInputView;
 import com.lampineapp.graphics.colorgraphinputview.ColorTimeSeries;
 
-public class FragmentAddLampMode extends Fragment {
+public class FragmentAddLampModeColor extends Fragment {
 
-    private final static String TAG = FragmentAddLampMode.class.getSimpleName();
+    private final static String TAG = FragmentAddLampModeColor.class.getSimpleName();
 
     ColorGraphInputView mColorGraphInputView;
     FragmentConfigureLampModes mFragmentConfigureLamp;
@@ -23,8 +24,7 @@ public class FragmentAddLampMode extends Fragment {
                              Bundle savedInstanceState) {
 
         // Inflate the layout for this fragment
-        final View v = inflater
-                .inflate(R.layout.fragment_add_lamp_mode, container, false);
+        final View v = inflater.inflate(R.layout.fragment_add_lamp_mode, container, false);
 
         // Color graph input
         mColorGraphInputView = v.findViewById(R.id.add_lamp_config_color_graph_input);

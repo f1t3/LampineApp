@@ -20,7 +20,6 @@ public class ModeButton {
     static private int mColorInactive;
     static private int mColorActive;
 
-
     public ModeButton(Context context, View v, int viewId, int iconId, int textId, int indicatorId) {
         mLayout = v.findViewById(viewId);
         mIcon = v.findViewById(iconId);
