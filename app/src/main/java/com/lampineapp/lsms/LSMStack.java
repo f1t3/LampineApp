@@ -60,7 +60,9 @@ public class LSMStack {
     }
 
     public void send(byte[] data) {
-        mLayer3Sap.requestTransmit(LMSMessage.MessageType.TYPE_SHORT, data);
+        if (data != null) {
+            mLayer3Sap.requestTransmit(LMSMessage.MessageType.TYPE_SHORT, data);
+        }
     }
 
     public void send(String data) {

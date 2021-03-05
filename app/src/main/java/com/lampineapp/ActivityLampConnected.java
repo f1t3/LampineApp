@@ -37,6 +37,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.lampineapp.frag_configure_lamp.FragmentConfigureLampModes;
+import com.lampineapp.frag_configure_lamp.whiteconfig.WhiteLampModesFile;
 import com.lampineapp.lsms.LSMStack;
 import com.lampineapp.lsms.androidbtle.HM10TransparentBTLEBroadcastReceiver;
 
@@ -51,7 +52,7 @@ import java.util.ArrayList;
 public class ActivityLampConnected extends AppCompatActivity {
 	private final static String TAG = ActivityLampConnected.class.getSimpleName();
 
-	private final static boolean NO_BTLE = true;
+	private final static boolean NO_BTLE = false;
 
 	private ProgressDialog mWaitForLampConnectedDialog;
 	private AlertDialog mConnectionLostDialog;
@@ -151,12 +152,11 @@ public class ActivityLampConnected extends AppCompatActivity {
 		mHwInterface = new HM10TransparentBTLEBroadcastReceiver();
 		mHwInterface.bindToDevice(this);
 		mHwInterface.registerReceiver(this);
-		mHwInterface.connect();
-		mLSMStack = new LSMStack(mHwInterface);
-		
+		if (!NO_BTLE) {
+			mHwInterface.connect();
+		}
 		mConnectionRetryHandler.postDelayed(mConnectionRetryRunner, 10);
-
-
+		mLSMStack = new LSMStack(mHwInterface);
 	}
 
 	@Override
@@ -189,25 +189,14 @@ public class ActivityLampConnected extends AppCompatActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.gatt_services, menu);
-		if (mConnected) {
-			menu.findItem(R.id.menu_connect).setVisible(false);
-			menu.findItem(R.id.menu_disconnect).setVisible(true);
-		} else {
-			menu.findItem(R.id.menu_connect).setVisible(true);
-			menu.findItem(R.id.menu_disconnect).setVisible(false);
-		}
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.menu_connect:
-			return true;
-		case R.id.menu_disconnect:
-			return true;
 		case android.R.id.home:
+			WhiteLampModesFile.erase(this);
 			onBackPressed();
 			return true;
 		}
@@ -226,7 +215,7 @@ public class ActivityLampConnected extends AppCompatActivity {
 		fm.beginTransaction().replace(R.id.lamp_connected_ui_fragment_area, fragment).commit();
 	}
 
-	protected LSMStack getLSMStack() {
+	public LSMStack getLSMStack() {
 		return mLSMStack;
 	}
 

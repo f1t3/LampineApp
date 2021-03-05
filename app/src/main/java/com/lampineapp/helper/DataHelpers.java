@@ -9,6 +9,15 @@ public class DataHelpers {
 
     private final static String TAG = ColorGraphInputView.class.getSimpleName();
 
+    public static int[] getHoursAndMinutes(int minutes) {
+        int hours = 0;
+        while (minutes >= 60) {
+            minutes -= 60;
+            hours++;
+        }
+        return new int[]{hours, minutes};
+    }
+
     public static int[] parseStringArrayToIntArray(String[] stringArray) {
         int[] ret = new int[stringArray.length];
         for (int i = 0; i < stringArray.length; i++) {

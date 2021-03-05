@@ -7,7 +7,7 @@
     android:orientation="vertical" >
 
     <com.lampineapp.graphics.colorgraphinputview.ColorGraphInputView
-        android:id="@+id/add_lamp_config_color_graph_input"
+        android:id="@+id/fragment_configure_lamp_mode_white_listitem_intensitybar"
         android:layout_width="match_parent"
         android:layout_height="350dp" />
 </LinearLayout>

@@ -55,6 +55,18 @@
     <string name="frag_conf_lamp_mode_white_info_at_bottom">You can sort your lamp modes by long press.\nTo select a mode on the lamp single press your lamp\'s switch to scroll through your modes.</string>
     <string name="frag_conf_lamp_mode_white_listitem_text">Intensity: </string>
 
+    <!-- Activity edit lamp mode white -->
+    <string name="act_edit_mode_white_title_add">Add mode</string>
+    <string name="act_edit_mode_white_title_edit">Edit mode</string>
+    <string name="act_edit_mode_white_preview_string">Enable live preview</string>
+    <string name="act_edit_mode_white_intensity_percentage_string">%d \%% (%d lm) </string>
+    <string name="act_edit_mode_white_led_parameter_string">LED parameters:</string>
+    <string name="act_edit_mode_white_led_parameter_power_string">Input power: %d mW</string>
+    <string name="act_edit_mode_white_led_parameter_current_string">Current: %d mA</string>
+    <string name="act_edit_mode_white_battery_parameter_string">Battery parameters:</string>
+    <string name="act_edit_mode_white_battery_lifetime_string">Estimated lifetime: %d:%d h</string>
+    <string name="act_edit_mode_white_battery_warning_string">Notice: To avoid overheating, the lamp will only be able to stay %d s in this mode</string>
+
 
 
 

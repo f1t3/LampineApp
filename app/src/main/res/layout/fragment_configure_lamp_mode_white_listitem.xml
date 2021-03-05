@@ -21,41 +21,23 @@
     android:gravity="center_vertical"
     android:orientation="vertical">
 
-    <FrameLayout
+    <TextView
+        android:id="@+id/fragment_configure_lamp_mode_white_listitem_titletext"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="56dp"
-        android:layout_marginRight="56dp"
-        android:layout_marginBottom="24dp">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="TextView"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/fragment_configure_lamp_mode_white_listitem_intensity_border"
-            android:layout_width="match_parent"
-            android:layout_height="18dp"
-            app:cardBackgroundColor="@color/colorBackgroundDark"
-            app:cardCornerRadius="24dp"
-            app:strokeColor="@color/colorIconActive"
-            app:strokeWidth="2dp" />
-
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/fragment_configure_lamp_mode_white_listitem_intensity_progress"
-            android:layout_width="100dp"
-            android:layout_height="18dp"
-            android:background="@drawable/lamp_mode_white_gradient"
-            app:cardBackgroundColor="@color/colorBackgroundLight"
-            app:cardCornerRadius="24dp"
-            app:strokeColor="@color/colorIconActive"
-            app:strokeWidth="2dp">
-
-            <RelativeLayout
-                android:id="@+id/fragment_configure_lamp_mode_white_listitem_intensity_background"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/lamp_mode_white_gradient"></RelativeLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-    </FrameLayout>
+    <com.lampineapp.graphics.gradientbar.GradientProgressBar
+        android:id="@+id/fragment_configure_lamp_mode_white_listitem_intensitybar"
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp" />
 
     <TextView
         android:id="@+id/fragment_configure_lamp_mode_white_listitem_infotext"

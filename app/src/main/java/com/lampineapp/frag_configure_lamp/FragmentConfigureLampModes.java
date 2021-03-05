@@ -76,7 +76,7 @@ public class FragmentConfigureLampModes extends Fragment {
         }
     }
 
-    protected void replaceCurrentModeConfigFragmentWith(Fragment fragment) {
+    public void replaceCurrentModeConfigFragmentWith(Fragment fragment) {
         final FragmentManager fm = getChildFragmentManager();
 
         // Get and destroy current fragment

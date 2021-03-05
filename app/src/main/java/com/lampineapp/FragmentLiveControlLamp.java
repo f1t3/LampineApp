@@ -1,9 +1,7 @@
 package com.lampineapp;
 
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,13 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.material.slider.Slider;
-import com.lampineapp.lsms.layer2.LMSLayer2ServiceProvider;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import static com.lampineapp.helper.GeneralHelpers.sleep_ms;
 import static java.nio.charset.StandardCharsets.*;
 
 public class FragmentLiveControlLamp extends Fragment {
@@ -106,7 +98,7 @@ public class FragmentLiveControlLamp extends Fragment {
             }
         });
 
-        mSliderIntensity = v.findViewById(R.id.live_control_intensity_slider);
+        mSliderIntensity = v.findViewById(R.id.act_edit_mode_white_intensity_previewbar);
         mSliderIntensityOnChangeListener = new Slider.OnChangeListener() {
             @Override
             public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {

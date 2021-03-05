@@ -2,19 +2,21 @@
     <!-- Toolbar background / text color: https://qiita.com/ShinichiroFunatsu/items/938e07d44b032fad7318 -->
     <style name="AppTheme" parent="@style/Theme.MaterialComponents.DayNight">
         <!-- Color of status bar -->
-        <item name="android:statusBarColor">@color/colorBackgroundLight</item>
+        <item name="android:statusBarColor">@color/colorBackgroundDark</item>
         <item name="android:windowLightStatusBar">true</item>
+
         <!-- Dialog button font color, button background color -->
-        <item name="colorPrimary">@color/colorAccent3</item>
-        <item name="colorPrimaryDark">@color/colorAccent2</item>
+        <item name="colorPrimary">@color/colorBackgroundLight</item>
+        <item name="colorPrimaryDark">@color/colorTextDark</item>
         <item name="colorSecondary">@color/colorAccent</item>
+
         <!-- Switch color -->
-        <item name="colorAccent">@color/colorAccent7</item>
-        <item name="android:colorAccent">@color/colorAccent7</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
         <!-- General background color -->
        <!-- <item name="android:background">@color/colorBackgroundLight</item>-->
         <!-- General text color for alert dialog titles -->
-        <item name="android:textColorPrimary">@color/colorAccent2</item>
+        <item name="android:textColorPrimary">@color/colorTextDark</item>
         <!-- General text color for alert dialog messages -->
         <item name="android:textColor">@color/colorIconActive</item>
         <!-- Dot menu, back arrow -->
@@ -38,7 +40,7 @@
     <style name="AppTheme.ProgressDialog" parent="@style/Theme.MaterialComponents.DayNight.Dialog.Alert">
         <item name="android:textColorPrimary">@color/colorTextDark</item>
         <item name="android:textColor">@color/colorTextLight</item>
-        <item name="colorAccent">@color/colorAccent7</item>
-        <item name="android:colorAccent">@color/colorAccent7</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorAccent">@color/colorAccent</item>
     </style>
 </resources>

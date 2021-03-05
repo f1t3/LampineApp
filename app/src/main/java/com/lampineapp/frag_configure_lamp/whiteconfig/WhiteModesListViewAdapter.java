@@ -15,44 +15,44 @@ import com.google.android.material.card.MaterialCardView;
 import com.lampineapp.R;
 import com.lampineapp.frag_configure_lamp.FragmentConfigureLampModes;
 import com.lampineapp.graphics.ColorGraphView;
+import com.lampineapp.graphics.gradientbar.GradientProgressBar;
+import com.lampineapp.lamp.LampineHeadlamp;
+import com.lampineapp.lamp.LampineK9RGB;
+import com.lampineapp.lamp.LampineLamp;
 
 import java.util.ArrayList;
 
 public class WhiteModesListViewAdapter extends BaseAdapter {
 
-    private ArrayList<WhiteModeItem> mItemList;
     private LayoutInflater mInflater;
+    private WhiteModeConfigHolder mConfigHolder;
 
     private Context mContext;
 
-    public WhiteModesListViewAdapter(Context context) {
+    public WhiteModesListViewAdapter(Context context, WhiteModeConfigHolder configHolder) {
         super();
         mContext = context;
         mInflater = ((Activity)context).getLayoutInflater();
-        mItemList = new ArrayList<>();
-
+        mConfigHolder = configHolder;
     }
 
-        public void addItem(WhiteModeItem item) {
-            mItemList.add(item);
-        }
-//
-//        public FragmentConfigureLampModes.LampModeConfigurationItem getModeConfigItem(int position) {
-//            return mLampModeConfigurationItemList.get(position);
-//        }
-//
-//        public void clear() {
-//            mLampModeConfigurationItemList.clear();
-//        }
+    public void addItem(WhiteLampMode mode) {
+        mConfigHolder.addAtEnd(mode);
+    }
+
+    public void updateConfigHolder(WhiteModeConfigHolder configHolder) {
+        mConfigHolder = configHolder;
+    }
+
 
     @Override
     public int getCount() {
-        return mItemList.size();
+        return mConfigHolder.getNumConfigs();
     }
 
     @Override
     public Object getItem(int i) {
-        return mItemList.get(i);
+        return mConfigHolder.getAt(i);
     }
 
     @Override
@@ -65,29 +65,19 @@ public class WhiteModesListViewAdapter extends BaseAdapter {
         // Reuse converted view if existing
         View v = convertView == null ? mInflater.inflate(R.layout.fragment_configure_lamp_mode_white_listitem, parent, false) : convertView;
 
-        final WhiteModeItem item = mItemList.get(position);
-        setIntensityBarPercentage(item.getPercentage(), v);
-        setItemTitle(item.getPercentage(), item.getCurrent(), v);
+        final GradientProgressBar intensityBar = v.findViewById(R.id.fragment_configure_lamp_mode_white_listitem_intensitybar);
+
+        final WhiteLampMode mode = mConfigHolder.getAt(position);
+
+        intensityBar.setGradientColorRange(new int[]{mContext.getColor(R.color.colorIntensityStart), mContext.getColor(R.color.colorIntensityStop)});
+        intensityBar.setProgress(mode.getIntensity());
+        intensityBar.setOutlineWidth(10);
+        LampineLamp lamp = new LampineK9RGB();
+        setItemTitle((int)(mode.getIntensity()*100), lamp.getLedCurrent_mA(mode.getIntensity()), v);
+
         // TODO: Do something with layout based on item!
 
         return v;
-    }
-
-    private void setIntensityBarPercentage(int percentage, View v) {
-        // Set width
-        int progressBarBorderWidth   = v.findViewById(R.id.fragment_configure_lamp_mode_white_listitem_intensity_border).getWidth();
-        int progressBarProgressWidth = (progressBarBorderWidth * percentage) / 100;
-        View progressBar =  v.findViewById(R.id.fragment_configure_lamp_mode_white_listitem_intensity_progress);
-        ViewGroup.LayoutParams params = progressBar.getLayoutParams();
-        params.width = progressBarProgressWidth;
-        progressBar.setLayoutParams(params);
-
-        // Set gradient
-        int colorLeft  = mContext.getColor(R.color.colorIntensityStart);
-        int colorRight = mContext.getColor(R.color.colorIntensityStop);
-        int[] colorRange  = {colorLeft, (int) new ArgbEvaluator().evaluate((float)percentage/100, colorLeft, colorRight)};
-        GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, colorRange);
-        v.findViewById(R.id.fragment_configure_lamp_mode_white_listitem_intensity_background).setBackground(gradient);
     }
 
     private void setItemTitle(int percentage, int current, View v) {

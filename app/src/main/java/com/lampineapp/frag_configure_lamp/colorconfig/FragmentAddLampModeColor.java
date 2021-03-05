@@ -27,7 +27,7 @@ public class FragmentAddLampModeColor extends Fragment {
         final View v = inflater.inflate(R.layout.fragment_add_lamp_mode, container, false);
 
         // Color graph input
-        mColorGraphInputView = v.findViewById(R.id.add_lamp_config_color_graph_input);
+        mColorGraphInputView = v.findViewById(R.id.fragment_configure_lamp_mode_white_listitem_intensitybar);
         mColorGraphInputView.setCurveCompleteCallbackFun(
                 new ColorGraphInputView.CurveCompleteCallbackFun() {
                     @Override

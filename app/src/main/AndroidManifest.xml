@@ -23,6 +23,9 @@
         <activity android:name=".ActivityLampConnected"
             android:windowSoftInputMode="adjustResize">
         </activity>
+        <activity android:name=".frag_configure_lamp.whiteconfig.ActivityEditLampModeWhite"
+            android:windowSoftInputMode="adjustResize">
+        </activity>
 
         <!-- Services -->
         <service android:name=".lsms.androidbtle.BluetoothLeService"

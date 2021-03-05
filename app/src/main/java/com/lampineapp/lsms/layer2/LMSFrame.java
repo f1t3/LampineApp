@@ -89,7 +89,7 @@ public abstract class LMSFrame {
         int sum1 = 0;
         int sum2 = 0;
         for (int i = 0; i < data.length; i++) {
-            sum1 = sum1 + sum2 + (int)data[i];
+            sum1 = sum1 + sum2 + (int)(data[i] & 0x00FF);
             // Modulo 65535
             sum1 = (sum1 & 0xFFFF) + (sum1 >> 16);
             sum2 = sum2 + sum1;

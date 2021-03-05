@@ -9,12 +9,16 @@
     <color name="colorIconActive">#121212</color>
 
 
-    <color name="colorIntensityStart">#FDD835</color>
-    <color name="colorIntensityStop">#8E24AA</color>
+    <color name="colorIntensityStart">#F7FF00</color>
+    <color name="colorIntensityStop">@color/colorAccent</color>
 
 
 
     <color name="colorAccent">#A7092E</color>
+
+
+
+
     <color name="colorAccent2">#049709</color>
     <color name="colorAccent3">#3F51B5</color>
     <color name="colorAccent4">#009688</color>

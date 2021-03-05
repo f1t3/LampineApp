@@ -38,7 +38,7 @@
     </LinearLayout>
 
     <com.google.android.material.slider.Slider
-        android:id="@+id/live_control_intensity_slider"
+        android:id="@+id/act_edit_mode_white_intensity_previewbar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginLeft="16dp"
