@@ -62,7 +62,7 @@ public class LMSLayer2ServiceProvider implements LMSLayer2SAP {
                         case NONE:
                             mServiceEvent = ServiceEvent.NONE;
                             mWaitingForAckCntr_ms += 1;
-                            if (mWaitingForAckCntr_ms >= WAITING_FOR_ACK_TIMEOUT_ms) {
+                            if (mWaitingForAckCntr_ms >= 100) {
                                 mTxRetryCntr++;
                                 mWaitingForAckCntr_ms = 0;
                                 // Repeat transmission of last queue frame

@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.android.material.slider.Slider;
+import com.lampineapp.lamp.LampineK9RGB;
 
 import static java.nio.charset.StandardCharsets.*;
 
@@ -31,10 +32,10 @@ public class FragmentLiveControlLamp extends Fragment {
     TextView mTextViewColorPicker;
     ActivityLampConnected mSenderActivity;
 
-    private int mR = 99, mG = 0, mB = 0;
-    private int mRLast = 99, mGLast = 99, mBLast = 99;
+    private int mR = 255, mG = 0, mB = 0;
+    private int mRLast = 255, mGLast = 255, mBLast = 255;
     private int mIntensity = 0;
-    private int mIntensityLast = 99;
+    private int mIntensityLast = 255;
 
     // TODO ???
     int iIntensityLase = 0;
@@ -45,14 +46,14 @@ public class FragmentLiveControlLamp extends Fragment {
         public void run() {
             if (mSenderActivity.getLSMStack().isConnected()) {
                 if (mR != mRLast || mG != mGLast || mB != mBLast) {
-                    mSenderActivity.getLSMStack().send(getSetColorCMD(mR, mG, mB));
+                    mSenderActivity.getLSMStack().send(LampineK9RGB.getLedctlColorCmd(mR, mG, mB));
                     mRLast = mR;
                     mGLast = mG;
                     mBLast = mB;
                 }
 
                 if (mIntensity != mIntensityLast) {
-                    mSenderActivity.getLSMStack().send(getSetIntensityCMD(mIntensity));
+                    mSenderActivity.getLSMStack().send(LampineK9RGB.getLedctlIntensityCmd(mIntensity));
                     mIntensityLast = mIntensity;
                 }
             }
@@ -84,16 +85,12 @@ public class FragmentLiveControlLamp extends Fragment {
                 if (b) {
                     // Colored mode, set color to red with current intensity
                     mConstraintLayoutColorPicker.setVisibility(View.VISIBLE);
-                    mSenderActivity.getLSMStack().send(getSetColorCMD(99, 0, 0));
-                    mSenderActivity.getLSMStack().send(getSetIntensityCMD(mIntensity));
+                    mSenderActivity.getLSMStack().send(LampineK9RGB.getLedctlColorCmd(99, 0, 0));
+                    mSenderActivity.getLSMStack().send(LampineK9RGB.getLedctlIntensityCmd(mIntensity));
                 } else {
-                    // No colored mode
-                    mConstraintLayoutColorPicker.setVisibility(View.GONE);
-                  // TODO
-                    //  mSenderActivity.getTransmitter().sendSerialString("lctl w 200\r\n");
-                    String cmd = "lc w 10";
-                    mSenderActivity.getLSMStack().send(cmd.getBytes(US_ASCII));
-
+                    // White mode, set intensity to current intensity
+                    mConstraintLayoutColorPicker.setVisibility(View.INVISIBLE);
+                    mSenderActivity.getLSMStack().send(LampineK9RGB.getLedctlWhiteCmd(mIntensity));
                 }
             }
         });
@@ -102,7 +99,7 @@ public class FragmentLiveControlLamp extends Fragment {
         mSliderIntensityOnChangeListener = new Slider.OnChangeListener() {
             @Override
             public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
-                // Max value 99 as expected by firmware
+                // Max value 255 as expected by firmware
                 mIntensity = (int) (value);
             }
         };
@@ -145,26 +142,14 @@ public class FragmentLiveControlLamp extends Fragment {
                     red = 1;
                     blue = 1 - (value-300) / 60;
                 }
-                mR = (int)(99 * red);
-                mG = (int)(99 * green);
-                mB = (int)(99 * blue);
+                mR = (int)(255 * red);
+                mG = (int)(255 * green);
+                mB = (int)(255 * blue);
             }
         };
         mSliderColor.addOnChangeListener(mSliderColorOnChangeListener);
         mSliderColor.setValue(0);
         mSliderHandler.postDelayed(mSliderHandlerRunnable,1000);
         return v;
-    }
-
-    private byte[] getSetColorCMD(int r, int g, int b)
-    {
-            String cmdStr = "lc c " + r + " " + g + " " + b;
-            return cmdStr.getBytes(US_ASCII);
-    }
-
-    private byte[] getSetIntensityCMD(int intensity)
-    {
-        String cmdStr = "lc i " + intensity;
-        return cmdStr.getBytes(US_ASCII);
     }
 }

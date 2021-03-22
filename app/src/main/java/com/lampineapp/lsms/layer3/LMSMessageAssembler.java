@@ -13,55 +13,56 @@ abstract public class LMSMessageAssembler implements LMSMessageRxBuffer {
 
     @Override
     public void put(byte[] frame) {
-        if (beginsWithValidSomAndTypeBytes(frame) && (endsWithEom(frame))) {
-            stream.reset();
-            final LMSMessage message = new LMSMessageRx(frame);
-            switch (message.getType()) {
-                case TYPE_ACK:
-                    onACKMessageComplete();
-                    break;
-                case TYPE_NACK:
-                    onNACKMessageComplete();
-                    break;
-                case TYPE_SHORT:
-                case TYPE_LONG:
-                    onDATMessageComplete(message);
-                    break;
-                default:
-                    Log.e(TAG, "Unknown message type received");
-            }
-        } else if (beginsWithValidSomAndTypeBytes(frame)) {
-            // Assume new message
-            // TODO: Implement
-            stream.reset();
-            try {stream.write(frame);} catch (IOException e) {};
-        } else if (endsWithEom(frame)) {
-            // Assume end of message
-            // TODO: USE LEN!
-            try {stream.write(frame);} catch (IOException e) {};
-            byte[] msg = stream.toByteArray();
-            // TODO: Implement
-            final LMSMessage message = new LMSMessageRx(msg);
-            Log.d(TAG, "Received " + msg.length + " bytes");
-            switch (message.getType()) {
-                case TYPE_ACK:
-                    onACKMessageComplete();
-                    break;
-                case TYPE_NACK:
-                    onNACKMessageComplete();
-                    break;
-                case TYPE_SHORT:
-                case TYPE_LONG:
-                    onDATMessageComplete(message);
-                    break;
-                default:
-                    Log.e(TAG, "Unknown message type received");
-            }
-        } else {
-            // Assume data frame
-            // TODO: Implement
-            try {stream.write(frame);} catch (IOException e) {};
-        }
+        // TODO IMPLEMENT!
+//        if (beginsWithValidSomAndTypeBytes(frame)) {
+//            stream.reset();
+//            final LMSMessage message = new LMSMessageRx(frame);
+//            switch (message.getType()) {
+//                case TYPE_ACK:
+//                    onACKMessageComplete();
+//                    break;
+//                case TYPE_NACK:
+//                    onNACKMessageComplete();
+//                    break;
+//                case TYPE_SHORT:
+//                case TYPE_LONG:
+//                    onDATMessageComplete(message);
+//                    break;
+//                default:
+//                    Log.e(TAG, "Unknown message type received");
+//            }
+//        } else if (beginsWithValidSomAndTypeBytes(frame)) {
+//            // Assume new message
+//            // TODO: Implement
+//            stream.reset();
+//            try {stream.write(frame);} catch (IOException e) {};
+//        } else if (endsWithEom(frame)) {
+//            // Assume end of message
+//            // TODO: USE LEN!
+//            try {stream.write(frame);} catch (IOException e) {};
+//            byte[] msg = stream.toByteArray();
+//            // TODO: Implement
+//            final LMSMessage message = new LMSMessageRx(msg);
+//            Log.d(TAG, "Received " + msg.length + " bytes");
+//            switch (message.getType()) {
+//                case TYPE_ACK:
+//                    onACKMessageComplete();
+//                    break;
+//                case TYPE_NACK:
+//                    onNACKMessageComplete();
+//                    break;
+//                case TYPE_SHORT:
+//                case TYPE_LONG:
+//                    onDATMessageComplete(message);
+//                    break;
+//                default:
+//                    Log.e(TAG, "Unknown message type received");
+//            }
+//        } else {
+//            // Assume data frame
+//            // TODO: Implement
+//            try {stream.write(frame);} catch (IOException e) {};
+//        }
     }
 
     @Override
@@ -85,14 +86,4 @@ abstract public class LMSMessageAssembler implements LMSMessageRxBuffer {
         }
         return false;
     }
-
-    private boolean endsWithEom(byte[] frame) {
-        if (frame[frame.length - 1] == LMSMessage.EOM_BYTES) {
-                return true;
-        }
-        return false;
-    }
-
-
-
 }

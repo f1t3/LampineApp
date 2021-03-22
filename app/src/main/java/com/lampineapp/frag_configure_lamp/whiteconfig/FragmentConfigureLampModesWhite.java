@@ -3,18 +3,16 @@ package com.lampineapp.frag_configure_lamp.whiteconfig;
 import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.app.FragmentTransaction;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lampineapp.ActivityLampConnected;
 import com.lampineapp.R;
+import com.lampineapp.lamp.LampineK9RGB;
 
 
 public class FragmentConfigureLampModesWhite extends Fragment {
@@ -66,7 +64,7 @@ public class FragmentConfigureLampModesWhite extends Fragment {
         mListViewAdapter.updateConfigHolder(mModeConfigHolder);
         mListViewAdapter.notifyDataSetChanged();
 
-        ((ActivityLampConnected)getActivity()).getLSMStack().send(WhiteLampModesFile.readFileBytes(getActivity()));
+        ((ActivityLampConnected)getActivity()).getLSMStack().send(LampineK9RGB.getMemctlSaveWhiteconfigCmd(WhiteLampModesFile.readFileBytes(getActivity())));
     }
 
 

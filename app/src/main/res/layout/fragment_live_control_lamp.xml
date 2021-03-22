@@ -45,7 +45,7 @@
         android:layout_marginRight="16dp"
         android:value="false"
         android:valueFrom="0"
-        android:valueTo="99"
+        android:valueTo="255"
         app:labelBehavior="gone"
         app:thumbColor="@color/colorAccent"
         app:trackColorActive="@color/colorAccent"

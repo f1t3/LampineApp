@@ -27,13 +27,14 @@ public class LMSMessageRx extends LMSMessage {
     static private int extractLen(byte[] data) {
         switch (extractType(data)) {
             case TYPE_LONG:
-                if (data.length < NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES) {
+                if (data.length < NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES_LONG) {
                     return 0;
                 }
                 final byte[] lenBytes = Arrays.copyOfRange(data, NUM_SOM_BYTES + NUM_TYPE_BYTES, NUM_SOM_BYTES + NUM_TYPE_BYTES);
                 final int len = new BigInteger(lenBytes).intValue();
                 return len;
             case TYPE_SHORT:
+                // TODO!!!
             default:
                 return 0;
         }
@@ -42,15 +43,15 @@ public class LMSMessageRx extends LMSMessage {
     static private byte[] extractData(byte[] data) {
         switch (extractType(data)) {
             case TYPE_SHORT:
-                if (data.length < NUM_SOM_BYTES + NUM_TYPE_BYTES + 1 + NUM_EOM_BYTES) {
+                if (data.length < NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES_SHORT + 1) {
                     return null;
                 }
-                return Arrays.copyOfRange(data, NUM_SOM_BYTES + NUM_TYPE_BYTES, data.length - NUM_EOM_BYTES);
+                return Arrays.copyOfRange(data, NUM_SOM_BYTES + NUM_TYPE_BYTES, data.length);
             case TYPE_LONG:
-                if (data.length < NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES + 1 + NUM_CHECKSUM_BYTES + NUM_EOM_BYTES) {
+                if (data.length < NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES_LONG + 1 + NUM_CHECKSUM_BYTES ) {
                     return null;
                 }
-                return Arrays.copyOfRange(data, NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES, data.length - NUM_EOM_BYTES - NUM_CHECKSUM_BYTES);
+                return Arrays.copyOfRange(data, NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES_LONG, data.length - NUM_CHECKSUM_BYTES);
             default:
                 return null;
         }
@@ -61,10 +62,10 @@ public class LMSMessageRx extends LMSMessage {
             case TYPE_SHORT:
                 return new byte[]{};
             case TYPE_LONG:
-                if (data.length < NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES + 1 + NUM_CHECKSUM_BYTES + NUM_EOM_BYTES) {
+                if (data.length < NUM_SOM_BYTES + NUM_TYPE_BYTES + NUM_LEN_BYTES_LONG + 1 + NUM_CHECKSUM_BYTES ) {
                     return null;
                 }
-                return Arrays.copyOfRange(data, data.length - NUM_EOM_BYTES - NUM_CHECKSUM_BYTES, data.length - NUM_EOM_BYTES);
+                return Arrays.copyOfRange(data, data.length - NUM_CHECKSUM_BYTES, data.length );
             default:
                 return null;
         }

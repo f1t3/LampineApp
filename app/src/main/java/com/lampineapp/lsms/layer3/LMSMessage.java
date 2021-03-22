@@ -6,22 +6,21 @@ import java.nio.ByteBuffer;
 
 abstract public class LMSMessage {
 
-    final static protected int NUM_SOM_BYTES      = 1;
-    final static protected int NUM_EOM_BYTES      = 1;
-    final static protected int NUM_TYPE_BYTES     = 1;
-    final static protected int NUM_LEN_BYTES      = 4;
-    final static protected int NUM_CHECKSUM_BYTES = 4;
+    final static protected int NUM_SOM_BYTES        = 1;
+    final static protected int NUM_TYPE_BYTES       = 1;
+    final static protected int NUM_LEN_BYTES_SHORT  = 1;
+    final static protected int NUM_LEN_BYTES_LONG   = 4;
+    final static protected int NUM_CHECKSUM_BYTES   = 4;
 
-    final static protected int POS_SOM_BYTE = 0;
-    final static protected int POS_TYPE_BYTE = 1;
+    final static protected int POS_SOM_BYTE         = 0;
+    final static protected int POS_TYPE_BYTE        = 1;
 
-    final static protected byte SOM_BYTE = 0x04;
-    final static protected byte EOM_BYTES    = 0x05;
+    final static protected byte SOM_BYTE            = 0x04;
 
-    final static private byte TYPE_SHORT_BYTE = 0x01;
-    final static private byte TYPE_LONG_BYTES  = 0x02;
-    final static private byte TYPE_ACK_BYTES   = 0x03;
-    final static private byte TYPE_NACK_BYTES  = 0x04;
+    final static private byte TYPE_SHORT_BYTE       = 0x01;
+    final static private byte TYPE_LONG_BYTES       = 0x02;
+    final static private byte TYPE_ACK_BYTES        = 0x03;
+    final static private byte TYPE_NACK_BYTES       = 0x04;
 
 
     public enum MessageType {
@@ -50,15 +49,8 @@ abstract public class LMSMessage {
     protected LMSMessage(MessageType type, byte[] data) {
         mData = data;
         mMessageType = type;
-        switch (type) {
-            case TYPE_LONG:
-                mLen = mData.length;
-                mChecksum = calcChecksum(mData);
-                break;
-            case TYPE_SHORT:
-            default:
-                break;
-        }
+        mLen = mData.length;
+        mChecksum = calcChecksum(mData);
     }
 
     protected LMSMessage(MessageType type, int len, byte[] data, byte[] checksum) {
@@ -66,14 +58,8 @@ abstract public class LMSMessage {
             // TODO: What to do?
         }
         mMessageType = type;
+        mLen = len;
         mData = data;
-        switch (type) {
-            case TYPE_SHORT:
-                break;
-            case TYPE_LONG:
-                mChecksum = checksum;
-                mLen = len;
-        }
     }
 
     protected byte[] toBytes() {
@@ -81,19 +67,21 @@ abstract public class LMSMessage {
         try{
             stream.write(SOM_BYTE);
             switch (mMessageType) {
-                case TYPE_SHORT:
+                case TYPE_SHORT: {
                     stream.write(TYPE_SHORT_BYTE);
+                    stream.write((byte)mLen);
                     stream.write(mData);
                     break;
-                case TYPE_LONG:
+                }
+                case TYPE_LONG: {
                     stream.write(TYPE_LONG_BYTES);
-                    final byte[] lenArray = ByteBuffer.allocate(4).putInt(mLen).array();
+                    final byte[] lenArray = ByteBuffer.allocate(NUM_LEN_BYTES_LONG).putInt(mLen).array();
                     stream.write(lenArray);
                     stream.write(mData);
                     stream.write(mChecksum);
                     break;
+                }
             }
-            stream.write(EOM_BYTES);
         } catch (IOException e) {};
         return stream.toByteArray();
     }
